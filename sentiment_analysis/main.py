@@ -15,9 +15,9 @@ class SentimentAnalysis():
         speech, _ = librosa.load(file_path, sr=16000, mono=True)
         return speech
 
-    def split_audio(self, audio, chunk_size=16000*5):
+    def split_audio(self, audio, chunk_size=16000*15):
         """
-        Splits the audio into chunks of `chunk_size` samples (default: 5 seconds).
+        Splits the audio into chunks of `chunk_size` samples (default: 15 seconds).
         """
         return [audio[i:i + chunk_size] for i in range(0, len(audio), chunk_size)]
 
