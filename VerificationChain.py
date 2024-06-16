@@ -14,8 +14,6 @@ from vertexai.generative_models import (
 )
 from vertexai.preview import rag
 
-vertexai.init(location=os.environ['LOCATION'], project=os.environ['PROJECT_ID'])
-
 SYSTEM_INSTRUCTION = """
     Your name is Radhika from `Amazon Customer Support Agent Team` powered by LLM and you will be helping a customer today. 
 
@@ -62,6 +60,9 @@ class VerificationChain():
                 threshold=HarmBlockThreshold.BLOCK_NONE
             )
         ]
+
+        vertexai.init(location=os.environ['LOCATION'], project=os.environ['PROJECT_ID'])
+
 
     def get_tools(self):
         user_verified = FunctionDeclaration(
@@ -149,7 +150,7 @@ class VerificationChain():
                 final_response = """I'm sorry, but I am unable to verify the details at this time. Thank you for contacting Amazon!"""
                 return (Status.NOT_VERIFIED, final_response)
             elif(function_name == "user_verified"):
-                final_response = """Thank you for verifying your details"""
+                final_response = """Thank you for verifying your details."""
                 return (Status.VERIFIED, final_response)
             elif(function_name == "get_user_data"):
                 phone_number = function_call.args['phone_number']
