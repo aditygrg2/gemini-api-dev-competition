@@ -1,109 +1,282 @@
-from langchain import OpenAI
-from langchain.chat_models import ChatOpenAI
+from enum import Enum
+import vertexai
 import os
-from langchain.agents import Tool
-from dotenv import load_dotenv
-from langchain_google_genai import ChatGoogleGenerativeAI, HarmBlockThreshold, HarmCategory
-from langchain.chains import ConversationChain
-from langchain_core.prompts import ChatPromptTemplate
-from langchain.memory import ConversationBufferMemory
+from vertexai.generative_models import GenerativeModel
 from langchain.prompts import PromptTemplate
-from langchain.schema import SystemMessage
-from langchain.agents import AgentExecutor, initialize_agent
-from langchain_google_vertexai import VertexAI
-from langchain_google_community import VertexAISearchRetriever
-from langchain_google_community import VertexAIMultiTurnSearchRetriever
-from langchain.chains import ConversationalRetrievalChain
+from langchain_google_genai import GoogleGenerativeAIEmbeddings
+import google.generativeai as genai
+from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain.vectorstores import FAISS
+from vertexai.generative_models import (
+    FunctionDeclaration,
+    GenerationConfig,
+    GenerativeModel,
+    SafetySetting,
+    HarmCategory,
+    HarmBlockThreshold,
+    Part,
+    Tool,
+)
 
-during_chain_prompt = """
-    %USER QUERY
-    {user_query}
 
-    %USER DATA
-    {user_data}
+class DuringChainStatus(Enum):
+    TERMINATED = 0
+    AGENT_TRANSFERRED = 1
+    IN_PROGRESS_USER_QUERY = 2
+    IN_PROGRESS_RETRIEVAL = 3
+    IN_PROGRESS_GENERAL = 4
 
-    Context
-    {context}
 
-    Begin!
+SYSTEM_INSTRUCTION = """
+    Your name is Radhika from Amazon Customer Support Agent Team.
 
-    Previous conversation history:
-    {chat_history}
+    You are on a call. 
+    
+    You can use any of the tools for help 
+    get_data_of_user,
+    get_answers_to_general_help,
+    terminate_if_satisfied,
+    send_to_agent_for_manual_intervention
 
-    New input: {input}
-    {agent_scratchpad}
-"""
+    Do not verify anything about user because he is already verified.
 
-sys_ins = """
-Your name is Radhika from `Amazon Customer Support Agent Team` powered by LLM and you will be helping a customer today. 
+    You can ask user if you need any details.
+    
+    If you are unable to find the answer, forward the call to agent by calling 'send_to_agent_for_manual_intervention'
 
-Be polite, assuring and helping. 
+    You can only tell the user about things, you cannot help if any thing needs to be executed. 
+    For example, you cannot execute an return but you can only tell info about it.
 
-You will be provided with the user data by him, and context.
-DO NOT SHARE USER DATA TO THE USER, JUST USE IT FOR YOUR HELP AND DETECTING THE ANSWERS.
-
-Feel free to ask the user if you need any details. 
-Ask and communicate with user, context is just for your help. You can answer things on your own as well!
-
-Anytime if you feel you are unable to find the answer, you can forward the call to the agent executive.
-
-Always start with: "Welcome to Amazon! and a good greeting"
-
-%Context
-{context}
-
-%Question
-{question}
-
-Previous conversation history:
-{chat_history}
-
-Begin! call is live with customer
+    DO NOT MAKE UP ANSWERS/DETAILS OF YOUR OWN.
 """
 
 class DuringChain():
-    def __init__(self, prompt = during_chain_prompt, system_instructions = sys_ins) -> None:
-        self.template = prompt = PromptTemplate(
-            input_variables=["user_query", "user_data", "context"],
-            template=during_chain_prompt
+    def __init__(self, user_data, user_query, system_instruction = SYSTEM_INSTRUCTION) -> None:
+        vertexai.init(location=os.environ['LOCATION'], project=os.environ['PROJECT_ID'])
+        self.user_data = user_data
+        self.user_query = user_query
+        self.safety_config = [
+            SafetySetting(
+                category=HarmCategory.HARM_CATEGORY_UNSPECIFIED,
+                threshold=HarmBlockThreshold.BLOCK_NONE
+            ),
+            SafetySetting(
+                category=HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
+                threshold=HarmBlockThreshold.BLOCK_NONE
+            ),
+            SafetySetting(
+                category=HarmCategory.HARM_CATEGORY_HARASSMENT,
+                threshold=HarmBlockThreshold.BLOCK_NONE
+            ),
+            SafetySetting(
+                category=HarmCategory.HARM_CATEGORY_HATE_SPEECH,
+                threshold=HarmBlockThreshold.BLOCK_NONE
+            ),
+            SafetySetting(
+                category=HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
+                threshold=HarmBlockThreshold.BLOCK_NONE
+            )
+        ]
+
+    def get_tools(self):
+        get_data_of_user = FunctionDeclaration(
+            name = "get_data_of_user",
+            description = 
+            """
+                Do not mock up any info, ask here if you need any info.
+                Get data of User, his orders, product, transactions, items info and any other profile details.
+            """,
+            parameters = {
+                "type": "object",
+                "properties": {"query": {"type": "string"}},
+            }
         )
-        self.system_instructions = system_instructions
 
-    def initialize_model(self, user_phone_number):
-        MODEL = os.environ['MODEL']
-        PROJECT_ID = os.environ['PROJECT_ID']
-        DATA_STORE_LOCATION = os.environ['DATA_STORE_LOCATION']
-        DATA_STORE_ID = os.environ['DATA_STORE_ID']
-
-        llm = VertexAI(model_name=MODEL, temperature=0.4, max_output_tokens=1024, project=PROJECT_ID, system_instruction=self.system_instructions)
-
-        multi_turn_retriever = VertexAIMultiTurnSearchRetriever(
-            project_id=PROJECT_ID, location_id=DATA_STORE_LOCATION, data_store_id=DATA_STORE_ID
+        get_info_about_query = FunctionDeclaration(
+            name = "get_info_about_query",
+            description = """
+            This searches through help docs of the Amazon Pages and finds relevant information about refund policy, cancellation policy and from other help related pages. 
+            You can take data from here to understand better about the solutions if not known to you already.
+            """,
+            parameters = {
+                "type": "object",
+                "properties": {"query": {"type": "string"}},
+            }
         )
 
-        memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
-
-        conversational_retrieval = ConversationalRetrievalChain.from_llm(
-            llm=llm, retriever=multi_turn_retriever, memory=memory, combine_docs_chain_kwargs={
-                'prompt': self.template
-            }, rephrase_question=False
+        terminate_if_satisfied = FunctionDeclaration(
+            name = "terminate_if_satisfied",
+            description = "Checks if the user seems satisfied with the answer and terminates the chat accordingly.",
+            parameters = {
+                "type": "object",
+                "properties": {"feedback_user": {"type": "string"}},
+            }
         )
 
-        self.conversational_retrieval = conversational_retrieval
+        send_to_agent_for_manual_intervention = FunctionDeclaration(
+            name = "send_to_agent_for_manual_intervention",
+            description = "Sends the query to a human agent for manual intervention when the LLM is unable to process it.",
+            parameters = {
+                "type": "object",
+                "properties": {"query": {"type": "string"}},
+            }
+        )
 
-    def first_message(self, user_data, user_query):
-        response = self.conversational_retrieval.invoke("""
+        tools = Tool(
+            function_declarations=[
+                get_data_of_user,
+                get_info_about_query,
+                terminate_if_satisfied,
+                send_to_agent_for_manual_intervention
+            ],
+        )
+
+        return tools
         
-        User Data:
-        {user_data}
 
-        User Query:
-        {user_query}
-        
-        """.format(user_data, user_query))
+    def initialize_model(self):
+        model = GenerativeModel(
+            "gemini-1.5-pro-001",
+            generation_config=GenerationConfig(temperature=0.5),
+            tools=[self.get_tools()],
+            system_instruction=SYSTEM_INSTRUCTION,
+            safety_settings=self.safety_config
+        )
 
-        return response.answer
-    
-    def send_message(self, request):
-        response = self.conversational_retrieval.invoke(request)
-        return response.answer
+        chat = model.start_chat(response_validation=False)
+        self.chat = chat
+
+        return chat
+
+    def format_text(self, text):
+        return "".join(text.split("\n"))
+
+    def start_chat(self):
+        response = self.chat.send_message(self.user_query)
+
+        return self.validate_response(response)
+
+    def validate_response(self, response):
+        final_response = ""
+
+        function_call = response.candidates[0].content.parts[0].function_call
+
+        print(function_call)
+
+        if(not function_call):
+            ai_reply = self.format_text(response.candidates[0].content.parts[0].text)
+            return (DuringChainStatus.IN_PROGRESS_GENERAL, self.format_text(ai_reply))
+        else:
+            function_name = response.candidates[0].content.parts[0].function_call.name
+
+            if(function_name == "send_to_agent_for_manual_intervention"):
+                final_response = """You will soon receive a call from an agent. Thank you for contacting Amazon! This call can now be terminated."""
+                return (DuringChainStatus.AGENT_TRANSFERRED, final_response)
+            
+            elif(function_name == "terminate_if_satisfied"):
+                feedback = function_call.args['feedback']
+
+                # TODO LOG IT SOMEWHERE IN ANALYTICS
+
+                final_response = """Thank you for calling Amazon. Have an amazing day!"""
+                return (DuringChainStatus.TERMINATED, final_response)
+            
+            elif(function_name == "get_data_of_user"):
+                question = function_call.args['query']
+
+                response = self.send_message(
+                    Part.from_function_response(
+                        name=function_name,
+                        response={
+                            "content": self.get_data_of_user_chain(question),
+                        },
+                    ),
+                )
+
+                return (DuringChainStatus.IN_PROGRESS_USER_QUERY, self.format_text(response.candidates[0].content.parts[0].text))
+
+            elif(function_name == "get_answers_to_general_help"):
+                response = self.send_message(
+                    Part.from_function_response(
+                        name = function_name,
+                        response = {
+                            "content": self.get_info_about_query(question)
+                        }
+                    )
+                )
+
+                return (DuringChainStatus.IN_PROGRESS_RETRIEVAL, self.format_text(response.candidates[0].content.parts[0].text))
+
+            else:
+                return (DuringChainStatus.AGENT_TRANSFERRED,"""You will soon receive a call from an agent. Thank you for contacting Amazon! This call can now be terminated.""")
+
+    def send_message(self, input):
+        response = self.chat.send_message(input)
+        return self.validate_response(response)
+
+    def get_data_of_user_chain(self, question):
+        try: 
+            template = """
+                Use the following pieces of context (JSON) which is everything of user data to answer the question at the end.
+                If you don't know the answer, just say that you don't know, don't try to make up an answer.
+
+                {context}
+
+                Question: Find {question}
+
+                Helpful Answer:"""
+            
+            prompt = PromptTemplate(
+                input_variables=["context", "question"],
+                template=template
+            )
+
+            sol = prompt.format(context = self.user_data, question = question)
+
+            print(sol)
+
+            model = GenerativeModel(
+                "gemini-1.5-pro-001",
+                generation_config=GenerationConfig(temperature=0.5),
+                safety_settings=None
+            )
+
+            chat = model.start_chat(response_validation = False)
+            response = chat.send_message(sol)
+
+            if(not response):
+                return "There is no data available. Please transfer the call to agent."
+
+            print(response)
+
+            return self.format_text(response.candidates[0].content.parts[0].text)
+        except Exception as e:
+            print("get_data_of_user_chain", e)
+
+    def get_info_about_query(self, user_question):
+        model = ChatGoogleGenerativeAI(
+            model="gemini-pro",
+            client=genai,
+            temperature=0.5,
+            safety_settings=None
+        )
+
+        embeddings = GoogleGenerativeAIEmbeddings(
+                model="models/embedding-001")
+
+        new_db = FAISS.load_local("faiss_index", embeddings, allow_dangerous_deserialization=True)
+
+        def filter_contexts(term):
+            contexts = new_db.similarity_search_with_score(term, k=3)
+
+            ans_contexts = []
+
+            for i in contexts:
+                print(i[1])
+                if(i[1] > 0.5):
+                    ans_contexts.append(i[0].page_content)
+
+            return ans_contexts
+
+        data = filter_contexts(user_question)
+        return "".join(data)

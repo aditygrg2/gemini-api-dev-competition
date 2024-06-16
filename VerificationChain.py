@@ -92,7 +92,13 @@ class VerificationChain():
             },
         )
 
-        tools = [user_not_verified, user_verified, get_user_data]
+        tools = Tool(
+            function_declarations=[
+                user_not_verified,
+                user_verified,
+                get_user_data
+            ]
+        )
 
         return tools
 
@@ -100,14 +106,10 @@ class VerificationChain():
         return self.system_message
 
     def get_model(self):
-        tools = Tool(
-            function_declarations=self.get_tools(),
-        )
-
         model = GenerativeModel(
             "gemini-1.5-pro-001",
             generation_config=GenerationConfig(temperature=0.2),
-            tools=[tools],
+            tools=[self.get_tools()],
             system_instruction=SYSTEM_INSTRUCTION
         )
 
