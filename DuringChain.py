@@ -30,9 +30,9 @@ class DuringChainStatus(Enum):
 SYSTEM_INSTRUCTION = """
     Your name is Radhika from Amazon Customer Support Agent Team.
 
-    You are on a call. 
+    You are on a call so do not keep the customer waiting and give answers to every question.
     
-    You can use any of the tools for help 
+    You can use any of the tools for help. 
     get_data_of_user,
     get_answers_to_general_help,
     terminate_if_satisfied,
@@ -193,7 +193,9 @@ class DuringChain():
                     ),
                 )
 
-                return (DuringChainStatus.IN_PROGRESS_USER_QUERY, self.format_text(response.candidates[0].content.parts[0].text))
+                print(response)
+
+                return (DuringChainStatus.IN_PROGRESS_USER_QUERY, self.format_text(response[1].candidates[0].content.parts[0].text))
 
             elif(function_name == "get_answers_to_general_help"):
                 response = self.send_message(
@@ -205,7 +207,7 @@ class DuringChain():
                     )
                 )
 
-                return (DuringChainStatus.IN_PROGRESS_RETRIEVAL, self.format_text(response.candidates[0].content.parts[0].text))
+                return (DuringChainStatus.IN_PROGRESS_RETRIEVAL, self.format_text(response[1].candidates[0].content.parts[0].text))
 
             else:
                 return (DuringChainStatus.AGENT_TRANSFERRED,"""You will soon receive a call from an agent. Thank you for contacting Amazon! This call can now be terminated.""")
@@ -215,6 +217,7 @@ class DuringChain():
         return self.validate_response(response)
 
     def get_data_of_user_chain(self, question):
+        print("Starting get_data_of_user_chain")
         try: 
             template = """
                 Use the following pieces of context (JSON) which is everything of user data to answer the question at the end.
@@ -233,8 +236,6 @@ class DuringChain():
 
             sol = prompt.format(context = self.user_data, question = question)
 
-            print(sol)
-
             model = GenerativeModel(
                 "gemini-1.5-pro-001",
                 generation_config=GenerationConfig(temperature=0.5),
@@ -243,11 +244,10 @@ class DuringChain():
 
             chat = model.start_chat(response_validation = False)
             response = chat.send_message(sol)
+            print(response.candidates[0].content.parts[0].text)
 
             if(not response):
                 return "There is no data available. Please transfer the call to agent."
-
-            print(response)
 
             return self.format_text(response.candidates[0].content.parts[0].text)
         except Exception as e:
@@ -265,9 +265,12 @@ class DuringChain():
                 model="models/embedding-001")
 
         new_db = FAISS.load_local("faiss_index", embeddings, allow_dangerous_deserialization=True)
+        print(new_db)
 
         def filter_contexts(term):
             contexts = new_db.similarity_search_with_score(term, k=3)
+
+            print(contexts)
 
             ans_contexts = []
 
