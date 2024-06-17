@@ -12,14 +12,14 @@ from vertexai.generative_models import (
     Part,
     Tool,
 )
-from vertexai.preview import rag
+
 
 SYSTEM_INSTRUCTION = """
     Your name is Radhika from `Amazon Customer Support Agent Team` powered by LLM and you will be helping a customer today. 
 
     You need to always verify if you are talking to the same person as the account holder for security purposes.
 
-    If there is no user_data, you can ask for his phone number and input it to the `find_data` function to get the data.
+    There is user data attached to the first message. If there is no user_data, you can ask for his phone number and input it to the `find_data` function to get the data.
 
     After you have the data, you can verify then by asking pincode, city and state of the customer and matching it with the data.
 
@@ -28,16 +28,16 @@ SYSTEM_INSTRUCTION = """
     Always start with: "Welcome to Amazon! and a good greeting"
 """
 
-class Status(Enum):
+class VerificationChainStatus(Enum):
     NOT_VERIFIED = 0
     VERIFIED = 1
     IN_PROGRESS = 2
 
 class VerificationChain():
-    def __init__(self, user_data, system_message = SYSTEM_INSTRUCTION) -> None:
+    def __init__(self, user_data, user_query, system_message = SYSTEM_INSTRUCTION) -> None:
         self.system_message = system_message
-        self.messages = []
         self.user_data = user_data
+        self.user_query = user_query
         self.safety_config = [
             SafetySetting(
                 category=HarmCategory.HARM_CATEGORY_UNSPECIFIED,
@@ -60,6 +60,7 @@ class VerificationChain():
                 threshold=HarmBlockThreshold.BLOCK_NONE
             )
         ]
+        self.chat_instance = None
 
         vertexai.init(location=os.environ['LOCATION'], project=os.environ['PROJECT_ID'])
 
@@ -70,13 +71,13 @@ class VerificationChain():
             description="This is called when the user is successfully verified",
             parameters={
                 "type": "object",
-                "properties": {"status": {"type": "boolean"}},
+                "properties": {"VerificationChainStatus": {"type": "boolean"}},
             },
         )
 
-        get_user_data = FunctionDeclaration(
-            name="get_user_data",
-            description="Get the info of the user to verify",
+        get_user_data_with_phone_number = FunctionDeclaration(
+            name="get_user_data_with_phone_number",
+            description="Get the info of the user to verify using phone number",
             parameters={
                 "type": "object",
                 "properties": {"phone_number": {"type": "string"}},
@@ -88,7 +89,7 @@ class VerificationChain():
             description="This is called when user is not verified",
             parameters={
                 "type": "object",
-                "properties": {"status": {"type": "boolean"}},
+                "properties": {"VerificationChainStatus": {"type": "boolean"}},
             },
         )
 
@@ -96,7 +97,7 @@ class VerificationChain():
             function_declarations=[
                 user_not_verified,
                 user_verified,
-                get_user_data
+                get_user_data_with_phone_number
             ]
         )
 
@@ -118,51 +119,51 @@ class VerificationChain():
     def get_chat_instance(self):
         return self.chat_instance
 
-    def convert_to_str(messages):
+    def convert_to_str(self, messages):
         ans = ""
         for i in messages:
-            ans += i[0] + " : " + i[1] + "\n"
+            ans += str(i[0]) + " : " + str(i[1]) + "\n"
 
         return ans
 
-    def format_text(text):
+    def format_text(self, text):
         return "".join(text.split("\n"))
 
     def start_chat(self):
+        print(self.user_data)
         self.chat_instance = self.get_model().start_chat(response_validation=False)
         INIT_PROMPT = str(self.user_data)
-        return self.send_message(INIT_PROMPT)
+        return self.send_message(f"""User Query \n\n `{self.user_query}` User Data \n\n `{self.user_data}`""")
 
     def send_message(self, message):
-        self.messages.append(("human", message))
-        response = self.chat_instance.send_message(self.convert_to_str(self.messages), safety_settings=self.safety_config)
+        response = self.chat_instance.send_message(message, safety_settings=self.safety_config)
         
         final_response = ""
         function_call = response.candidates[0].content.parts[0].function_call
 
         if(not function_call):
             ai_reply = self.format_text(response.candidates[0].content.parts[0].text)
-            self.messages.append(("AI", ai_reply))
-            final_response = ai_reply
-            return (Status.IN_PROGRESS, final_response)
+            return (VerificationChainStatus.IN_PROGRESS, ai_reply)
         else:
             function_name = response.candidates[0].content.parts[0].function_call.name
 
             if(function_name == "user_not_verified"):
                 final_response = """I'm sorry, but I am unable to verify the details at this time. Thank you for contacting Amazon!"""
-                return (Status.NOT_VERIFIED, final_response)
+                return (VerificationChainStatus.NOT_VERIFIED, final_response)
             elif(function_name == "user_verified"):
                 final_response = """Thank you for verifying your details."""
-                return (Status.VERIFIED, final_response)
-            elif(function_name == "get_user_data"):
+                return (VerificationChainStatus.VERIFIED, final_response)
+            elif(function_name == "get_user_data_with_phone_number"):
+                print("156", response)
                 phone_number = function_call.args['phone_number']
                 # Perform a mongo query here, return data, send it to the Gemini. TODO
                 response = self.send_message(
                     Part.from_function_response(
                         name=function_name,
                         response={
-                            "content": "response from API",
+                            "content": self.user_data,
                         },
                     ),
                 )
-                return (Status.IN_PROGRESS, "TODO")
+                
+                return (VerificationChainStatus.IN_PROGRESS, self.format_text(response[1]))

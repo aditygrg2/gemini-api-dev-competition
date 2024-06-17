@@ -16,6 +16,7 @@ function App() {
   const [recordedUrl, setRecordedUrl] = useState('');
   const mediaStream = useRef(null);
   const mediaRecorder = useRef(null);
+  const inputRef = useRef();
   const chunks = useRef([]);
 
   const startRecording = async () => {
@@ -42,7 +43,10 @@ function App() {
         const reader = new FileReader();
         reader.onload = () => {
           const base64data = reader.result.split(',')[1];
-          socket.emit('send_audio', base64data);
+          socket.emit('send_audio', {
+            data: base64data,
+            phone_number: inputRef.current.value
+          });
         };
         reader.readAsDataURL(recordedBlob);
       };
@@ -106,6 +110,7 @@ function App() {
         >
           Start
         </button>
+        <input ref={inputRef} type={'number'} placeholder={"Enter your phone number"}></input>
         <button
           onClick={stopRecording}
           className="px-4 py-2 bg-blue-500 text-white font-semibold rounded"

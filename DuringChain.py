@@ -152,6 +152,7 @@ class DuringChain():
         return "".join(text.split("\n"))
 
     def start_chat(self):
+        print(self.user_query)
         response = self.chat.send_message(self.user_query)
 
         return self.validate_response(response)
@@ -213,6 +214,7 @@ class DuringChain():
                 return (DuringChainStatus.AGENT_TRANSFERRED,"""You will soon receive a call from an agent. Thank you for contacting Amazon! This call can now be terminated.""")
 
     def send_message(self, input):
+        print(input)
         response = self.chat.send_message(input)
         return self.validate_response(response)
 
