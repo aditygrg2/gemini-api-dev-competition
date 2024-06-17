@@ -23,12 +23,6 @@ const GifPlayer = ({ staticImage, animatedGif, label }) => {
           className="w-64 h-64 mb-4"
         />
       </div>
-      <button
-        onClick={handleToggleGif}
-        className="px-4 py-2 bg-blue-500 text-white font-semibold rounded"
-      >
-        {isPlaying ? 'Pause' : 'Play'} {label}
-      </button>
     </div>
   );
 }
