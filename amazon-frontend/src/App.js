@@ -6,7 +6,7 @@ import customerGifPlaceholder from './headphone.jpg'
 import gifAnimatedCustomer from './customer.gif'; // Replace with the path to your customer animated GIF
 import gifAnimatedParallel from './customer_headphone.gif'; // Replace with the path to your parallel animated GIF
 import io from 'socket.io-client';
-import {ReactMic} from 'react-mic'
+import { ReactMic } from 'react-mic'
 
 const socket = io('http://localhost:8000'); // Update the port as per your backend
 
@@ -22,20 +22,23 @@ function App() {
     setRecord(true);
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      
       mediaStream.current = stream;
+      
       mediaRecorder.current = new MediaRecorder(stream);
+      
       mediaRecorder.current.ondataavailable = (e) => {
         if (e.data.size > 0) {
           chunks.current.push(e.data);
         }
       };
+      
       mediaRecorder.current.onstop = () => {
         const recordedBlob = new Blob(chunks.current, { type: 'audio/webm' });
         const url = URL.createObjectURL(recordedBlob);
         setRecordedUrl(url);
         chunks.current = [];
-        
-        // Emit recorded audio data to the backend
+
         const reader = new FileReader();
         reader.onload = () => {
           const base64data = reader.result.split(',')[1];
@@ -43,7 +46,9 @@ function App() {
         };
         reader.readAsDataURL(recordedBlob);
       };
+      
       mediaRecorder.current.start();
+
     } catch (error) {
       console.error('Error accessing microphone:', error);
     }
@@ -55,7 +60,7 @@ function App() {
     if (mediaRecorder.current && mediaRecorder.current.state === 'recording') {
       mediaRecorder.current.stop();
     }
-    
+
     if (mediaStream.current) {
       mediaStream.current.getTracks().forEach((track) => {
         track.stop();
@@ -65,6 +70,7 @@ function App() {
 
   useEffect(() => {
     socket.on('receive_audio', (data) => {
+      console.log("We have some data here");
       const audioBlob = new Blob([data], { type: 'audio/wav' });
       setReceivedAudio(URL.createObjectURL(audioBlob));
     });
@@ -106,6 +112,12 @@ function App() {
         >
           Stop
         </button>
+        {receivedAudio && (
+          <audio controls>
+            <source src={receivedAudio} type="audio/wav" />
+            Your browser does not support the audio element.
+          </audio>
+        )}
       </div>
     </div>
   );

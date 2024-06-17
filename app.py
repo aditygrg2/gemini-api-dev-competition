@@ -15,6 +15,7 @@ from flask_cors import CORS
 from pydub.playback import play
 import base64
 import wave
+import subprocess
 
 load_dotenv()
 
@@ -35,27 +36,26 @@ def handle_audio(data):
     try:
         audio_data = base64.b64decode(data)
         
-        with open('received_audio.wav', 'wb') as audio_file:
+        with open('received_audio.mp3', 'wb') as audio_file:
             audio_file.write(audio_data)
+
+        subprocess.call(['ffmpeg', '-i', 'received_audio.mp3', 'received_audio.wav'])
         
-        # Recognize the audio
         with sr.AudioFile('received_audio.wav') as source:
             audio = recognizer.record(source)
             text = recognizer.recognize_google(audio)
-            print(f"Recognized text: {text}")
+            print(text)
 
-            # Process the text (you can add your processing logic here)
             processed_text = f"Processed: {text}"
             print(f"Processed text: {processed_text}")
 
-            # Convert text to audio
             tts = gTTS(processed_text)
             audio_output_buffer = BytesIO()
             tts.write_to_fp(audio_output_buffer)
             audio_output_buffer.seek(0)
 
-            # Send back the audio
-            emit('receive_audio', base64.b64encode(audio_output_buffer.read()))
+            # Emit the audio data to the frontend
+            emit('receive_audio', audio_output_buffer.getvalue(), binary=True)
 
     except sr.UnknownValueError:
         print("Google Speech Recognition could not understand audio")
