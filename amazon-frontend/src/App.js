@@ -39,11 +39,15 @@ function App() {
         setRecordedUrl(url);
         chunks.current = [];
 
+        console.log(url);
+
         const reader = new FileReader();
         reader.onload = () => {
           const base64data = reader.result.split(',')[1];
           socket.emit('send_audio', base64data);
+          console.log("Emitted");
         };
+        
         reader.readAsDataURL(recordedBlob);
       };
       

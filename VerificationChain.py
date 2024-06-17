@@ -28,7 +28,7 @@ SYSTEM_INSTRUCTION = """
     Always start with: "Welcome to Amazon! and a good greeting"
 """
 
-class Status(Enum):
+class VerificationChainStatus(Enum):
     NOT_VERIFIED = 0
     VERIFIED = 1
     IN_PROGRESS = 2
@@ -60,6 +60,7 @@ class VerificationChain():
                 threshold=HarmBlockThreshold.BLOCK_NONE
             )
         ]
+        self.chat_instance = None
 
         vertexai.init(location=os.environ['LOCATION'], project=os.environ['PROJECT_ID'])
 
@@ -74,14 +75,14 @@ class VerificationChain():
             },
         )
 
-        get_user_data = FunctionDeclaration(
-            name="get_user_data",
-            description="Get the info of the user to verify",
-            parameters={
-                "type": "object",
-                "properties": {"phone_number": {"type": "string"}},
-            },
-        )
+        # get_user_data = FunctionDeclaration(
+        #     name="get_user_data",
+        #     description="Get the info of the user to verify",
+        #     parameters={
+        #         "type": "object",
+        #         "properties": {"phone_number": {"type": "integer"}},
+        #     },
+        # )
 
         user_not_verified = FunctionDeclaration(
             name="user_not_verified",
@@ -95,8 +96,8 @@ class VerificationChain():
         tools = Tool(
             function_declarations=[
                 user_not_verified,
-                user_verified,
-                get_user_data
+                user_verified
+                # get_user_data
             ]
         )
 
@@ -125,7 +126,7 @@ class VerificationChain():
 
         return ans
 
-    def format_text(text):
+    def format_text(self, text):
         return "".join(text.split("\n"))
 
     def start_chat(self):
@@ -134,26 +135,26 @@ class VerificationChain():
         return self.send_message(INIT_PROMPT)
 
     def send_message(self, message):
-        self.messages.append(("human", message))
-        response = self.chat_instance.send_message(self.convert_to_str(self.messages), safety_settings=self.safety_config)
+        # self.messages.append(("human", message))
+        response = self.chat_instance.send_message(message, safety_settings=self.safety_config)
         
         final_response = ""
         function_call = response.candidates[0].content.parts[0].function_call
 
         if(not function_call):
+            print(response.candidates[0].content.parts[0].text)
             ai_reply = self.format_text(response.candidates[0].content.parts[0].text)
-            self.messages.append(("AI", ai_reply))
-            final_response = ai_reply
-            return (Status.IN_PROGRESS, final_response)
+            # self.messages.append(("AI", ai_reply))
+            return (VerificationChainStatus.IN_PROGRESS, ai_reply)
         else:
             function_name = response.candidates[0].content.parts[0].function_call.name
 
             if(function_name == "user_not_verified"):
                 final_response = """I'm sorry, but I am unable to verify the details at this time. Thank you for contacting Amazon!"""
-                return (Status.NOT_VERIFIED, final_response)
+                return (VerificationChainStatus.NOT_VERIFIED, final_response)
             elif(function_name == "user_verified"):
                 final_response = """Thank you for verifying your details."""
-                return (Status.VERIFIED, final_response)
+                return (VerificationChainStatus.VERIFIED, final_response)
             elif(function_name == "get_user_data"):
                 phone_number = function_call.args['phone_number']
                 # Perform a mongo query here, return data, send it to the Gemini. TODO
@@ -165,4 +166,4 @@ class VerificationChain():
                         },
                     ),
                 )
-                return (Status.IN_PROGRESS, "TODO")
+                return (VerificationChainStatus.IN_PROGRESS, "TODO")
