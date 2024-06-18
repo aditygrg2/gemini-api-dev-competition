@@ -51,7 +51,7 @@ SYSTEM_INSTRUCTION = """
 """
 
 class DuringChain():
-    def __init__(self, user_data, user_query, system_instruction = SYSTEM_INSTRUCTION) -> None:
+    def __init__(self, user_data, user_query, sentiment, phone_number, system_instruction = SYSTEM_INSTRUCTION) -> None:
         vertexai.init(location=os.environ['LOCATION'], project=os.environ['PROJECT_ID'])
         self.user_data = user_data
         self.user_query = user_query
@@ -77,6 +77,8 @@ class DuringChain():
                 threshold=HarmBlockThreshold.BLOCK_NONE
             )
         ]
+        self.sentiment = sentiment
+        self.phone_number = phone_number
 
     def get_tools(self):
         get_data_of_user = FunctionDeclaration(
@@ -181,7 +183,7 @@ class DuringChain():
             elif(function_name == "closes_the_call"):
                 feedback = function_call.args['feedback']
 
-                # TODO LOG IT SOMEWHERE IN ANALYTICS
+                self.sentiment.analyze_chat_and_save("\n".join(self.chat.history), self.phone_number)
 
                 final_response = """Thank you for calling Amazon. Have an amazing day!"""
                 return (DuringChainStatus.TERMINATED, final_response)

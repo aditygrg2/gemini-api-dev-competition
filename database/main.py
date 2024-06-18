@@ -1,6 +1,9 @@
 from pymongo import MongoClient
 import os
 
+from dotenv import load_dotenv
+load_dotenv()
+
 client = MongoClient(os.environ['MONGO_URL'])
 db = client['amazon_data']
 userCollection = db['User']
@@ -13,17 +16,17 @@ class Database():
         self.analysisCollection = analysis
         self.trackerCollection = trackers
 
-    def get_user(self, phoneNumber):
+    def get_user(self, phone_number):
         projection = {
             '_id': 0
         }
-        return self.userCollection.find_one({"phoneNumber": phoneNumber}, projection)
+        return self.userCollection.find_one({"phone_number": phone_number}, projection)
     
-    def get_user_data_for_verification(self, phoneNumber):
-        fields = ['phone_no', 'name', 'town_city', 'state', 'pincode']
+    def get_user_data_for_verification(self, phone_number):
+        fields = ['phone_number', 'name', 'town_city', 'state', 'pincode']
         projection = {field: 1 for field in fields}
         projection['_id'] = 0
-        return self.userCollection.find_one({"phoneNumber": phoneNumber}, projection)
+        return self.userCollection.find_one({"phone_number": phone_number}, projection)
 
     def insert_audio_analysis(self, phoneNumber, data):
         # {

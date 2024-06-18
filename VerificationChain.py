@@ -159,15 +159,19 @@ class VerificationChain():
 
             if(function_name == "user_not_verified"):
                 final_response = """I'm sorry, but I am unable to verify the details at this time. Thank you for contacting Amazon!"""
-                self.chat_instance.history = []
                 return (VerificationChainStatus.NOT_VERIFIED, final_response)
             elif(function_name == "user_verified"):
                 final_response = """Thank you for verifying your details."""
                 return (VerificationChainStatus.VERIFIED, final_response)
             elif(function_name == "get_user_data_with_phone_number"):
                 print("156", response)
-                phone_number = function_call.args['phone_number']
+            
+                phone_number = self.format_text(function_call.args['phone_number'].strip().replace(" ", ""))
                 # Perform a mongo query here, return data, send it to the Gemini. TODO
+
+                if(not phone_number):
+                    phone_number = str(self.phone_number)
+
                 response = self.send_message(
                     Part.from_function_response(
                         name=function_name,

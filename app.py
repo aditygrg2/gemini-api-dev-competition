@@ -71,6 +71,8 @@ def handle_audio(data):
         with open(f'audios/{phone_number}/{u}.mp3', 'wb') as audio_file:
             audio_file.write(audio_data)
 
+        sentiment.analyze_audio_and_save(f'audios/{phone_number}/{u}.mp3', False, phone_number)
+
         subprocess.call(['ffmpeg', '-i', f'audios/{phone_number}/{u}.mp3', f'audios/{phone_number}/{u}.wav'])
         
         with sr.AudioFile(f'audios/{phone_number}/{u}.wav') as source:
@@ -97,7 +99,7 @@ def handle_audio(data):
                 chat = user_dict[phone_number]['verification_chain'].start_chat()
                 print("124", chat)
                 user_dict[phone_number]['call_status'] = CallStatus.VerificationChainStarted
-                convert_to_audio_and_send(chat[1])
+                convert_to_audio_and_send(chat[1], phone_number, u)
                 
             elif(user_dict[phone_number]['call_status'] == CallStatus.VerificationChainStarted):
                 response = user_dict[phone_number]['verification_chain'].send_message(text)
@@ -106,46 +108,50 @@ def handle_audio(data):
                 chain_status = response[0]
 
                 if(chain_status == VerificationChainStatus.NOT_VERIFIED):
-                    convert_to_audio_and_send(response[1])
+                    convert_to_audio_and_send(response[1], phone_number, u)
                     user_dict[phone_number]['call_status'] = CallStatus.VerificationChainNotStarted
                     
                 elif(chain_status == VerificationChainStatus.IN_PROGRESS):
-                    convert_to_audio_and_send(response[1])
+                    convert_to_audio_and_send(response[1], phone_number, u)
                 
                 else:
                     print("During chain started")
                     user_db_during = str(db.get_user(phone_number))
                     print(user_db_during)
-                    user_dict[phone_number]['during_chain'] = DuringChain(user_data=user_db_during, user_query=user_dict[phone_number]['user_query'])
+                    user_dict[phone_number]['during_chain'] = DuringChain(user_data=user_db_during, user_query=user_dict[phone_number]['user_query'], sentiment=sentiment, phone_number=phone_number)
                     chat_instance = user_dict[phone_number]['during_chain'].initialize_model()
                     response = user_dict[phone_number]['during_chain'].start_chat()
                     user_dict[phone_number]['call_status'] = CallStatus.DuringChainStarted
-                    handle_during_chain_conditions(response, phone_number)
+                    handle_during_chain_conditions(response, phone_number, u)
 
             else:
                 response = user_dict[phone_number]['during_chain'].send_message(text)
-                handle_during_chain_conditions(response, phone_number)
+                handle_during_chain_conditions(response, phone_number, u)
 
     except sr.UnknownValueError:
-        convert_to_audio_and_send("Can you please repeat? I am unable to understand your query.")
+        convert_to_audio_and_send("Can you please repeat? I am unable to understand your query.", phone_number, u)
         print("Google Speech Recognition could not understand audio")
     except sr.RequestError as e:
-        convert_to_audio_and_send("Can you please repeat? I am unable to understand your query.")
+        convert_to_audio_and_send("Can you please repeat? I am unable to understand your query.", phone_number, u)
         print(f"Could not request results from Google Speech Recognition service; {e}")
     finally:
         user_dict[phone_number]['first_time'] = False
 
-def convert_to_audio_and_send(text):
+def convert_to_audio_and_send(text, phone_number, u):
     print("AI Text", text)
     tts = gTTS(text)
     audio_output_buffer = BytesIO()
     tts.write_to_fp(audio_output_buffer)
     audio_output_buffer.seek(0)
 
+    audio_path = f"audios/{phone_number}/{u}.mp3"
+
+    sentiment.analyze_audio_and_save(audio_path, True, phone_number)
+
     emit('receive_audio', audio_output_buffer.getvalue(), binary=True)
     return "something"
 
-def handle_during_chain_conditions(response, phone_number):
+def handle_during_chain_conditions(response, phone_number, u):
     status = response[0]
     reply = response[1]
 
@@ -153,6 +159,6 @@ def handle_during_chain_conditions(response, phone_number):
         del user_dict[phone_number]
 
     print(reply, status)
-    convert_to_audio_and_send(reply)
+    convert_to_audio_and_send(reply, phone_number, u)
 
 socketio.run(app, debug=True, host='0.0.0.0', port=8000)
