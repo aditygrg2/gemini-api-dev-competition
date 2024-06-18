@@ -78,14 +78,15 @@ def handle_audio(data):
             text = recognizer.recognize_google(audio)
             print("Human Said", text)
 
-            # user_data = db.get_user(phoneNumber)
-            user_data = """
-                "name": "Raj Patel",
-                "phone_number": "9324899237"
-                "town_city": "Bengaluru",
-                "state": "Karnataka",
-                "pincode": "530068"
-            """
+            user_data = db.get_user_data_for_verification(phone_number)
+            print(user_data)
+            # user_data = """
+            #     "name": "Raj Patel",
+            #     "phone_number": "9324899237"
+            #     "town_city": "Bengaluru",
+            #     "state": "Karnataka",
+            #     "pincode": "530068"
+            # """
 
             print(user_dict)
 
@@ -113,7 +114,9 @@ def handle_audio(data):
                 
                 else:
                     print("During chain started")
-                    user_dict[phone_number]['during_chain'] = DuringChain(user_data=user_data, user_query=user_dict[phone_number]['user_query'])
+                    user_db_during = db.get_user(phone_number)
+                    print(user_db_during)
+                    user_dict[phone_number]['during_chain'] = DuringChain(user_data=user_db_during, user_query=user_dict[phone_number]['user_query'])
                     chat_instance = user_dict[phone_number]['during_chain'].initialize_model()
                     response = user_dict[phone_number]['during_chain'].start_chat()
                     user_dict[phone_number]['call_status'] = CallStatus.DuringChainStarted

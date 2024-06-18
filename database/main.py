@@ -8,7 +8,6 @@ analysis = db['analysis']
 trackers = db['trackers']
 
 class Database():
-
     def __init__(self) -> None:
         self.userCollection = userCollection
         self.analysisCollection = analysis
@@ -16,6 +15,11 @@ class Database():
 
     def get_user(self, phoneNumber):
         return self.userCollection.find_one({"phoneNumber": phoneNumber})
+    
+    def get_user_data_for_verification(self, phoneNumber):
+        fields = ['phone_no', 'name', 'town_city', 'state', 'pincode']
+        projection = {field: 1 for field in fields}
+        return self.userCollection.find_one({"phoneNumber": phoneNumber}, projection)
 
     def insert_audio_analysis(self, phoneNumber, data):
         # {
