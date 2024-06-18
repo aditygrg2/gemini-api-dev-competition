@@ -20,6 +20,7 @@ function App() {
   const mediaRecorder = useRef(null);
   const inputRef = useRef();
   const chunks = useRef([]);
+  const sourceRef = useRef();
 
   const startRecording = async () => {
     setRecord(true);
@@ -77,6 +78,8 @@ function App() {
       setReceivedAudio(URL.createObjectURL(audioBlob));
     });
   }, []);
+
+  useEffect(() => {}, [receivedAudio])
 
   return (
     <div className="flex flex-col justify-between items-center min-h-screen bg-gradient-to-r from-gray-100 via-gray-200 to-gray-300 p-4">
@@ -142,7 +145,7 @@ function App() {
       </div>
       {receivedAudio && (
         <div className="mt-8">
-          <audio controls className="w-full max-w-md">
+          <audio controls autoPlay className="" key={receivedAudio}>
             <source src={receivedAudio} type="audio/wav" />
             Your browser does not support the audio element.
           </audio>

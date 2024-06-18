@@ -8,14 +8,22 @@ analysis = db['analysis']
 trackers = db['trackers']
 
 class Database():
-
     def __init__(self) -> None:
         self.userCollection = userCollection
         self.analysisCollection = analysis
         self.trackerCollection = trackers
 
     def get_user(self, phoneNumber):
-        return self.userCollection.find_one({"phoneNumber": phoneNumber},{"_id":0})
+        projection = {
+            '_id': 0
+        }
+        return self.userCollection.find_one({"phoneNumber": phoneNumber}, projection)
+    
+    def get_user_data_for_verification(self, phoneNumber):
+        fields = ['phone_no', 'name', 'town_city', 'state', 'pincode']
+        projection = {field: 1 for field in fields}
+        projection['_id'] = 0
+        return self.userCollection.find_one({"phoneNumber": phoneNumber}, projection)
 
     def insert_audio_analysis(self, phoneNumber, data):
         # {
