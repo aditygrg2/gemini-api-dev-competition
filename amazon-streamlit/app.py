@@ -191,9 +191,6 @@ with tab1:
         min-width:180px;
         width:auto;
     }
-    tbody tr:hover {
-        background-color: #f1f1f1;
-    }
     .contact-sentiment-neutral,
     .contact-sentiment-positive,
     .contact-sentiment-negative,
@@ -265,7 +262,13 @@ with tab1:
                 </tr>
             </thead>
             <tbody>
-                {''.join(rows)}
+                            <tr>
+                    <td>{row['task_type']}</td>
+                    <td>{row['contact_name']}<br>{row['contact_number']}</td>
+                    <td>{row['agent_name']}<br>{row['agent_id']}</td>
+                    <td><span class="{contact_sentiment_class}">{row['contact_sentiment']}</span></td>
+                    <td><span class="{agent_sentiment_class}">{row['agent_sentiment']}</span></td>
+                </tr>
             </tbody>
         </table>
         """
