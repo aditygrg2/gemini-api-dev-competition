@@ -1,4 +1,5 @@
 import torch
+from enum import Enum
 import numpy as np
 import librosa
 from transformers import HubertForSequenceClassification, Wav2Vec2FeatureExtractor
@@ -7,7 +8,11 @@ from database.main import Database
 model = HubertForSequenceClassification.from_pretrained("superb/hubert-base-superb-er")
 feature_extractor = Wav2Vec2FeatureExtractor.from_pretrained("superb/hubert-base-superb-er")
 
-class SentimentAnalysis():
+class SentimentAnalysis(Enum):
+    HAPPY = 0
+    NEUTRAL = 1
+    SAD = 2
+    ANGRY = 3
     """
     run(file_path) : provides sentiment analysis with audio file located at `file_path`
     """
@@ -60,8 +65,17 @@ class SentimentAnalysis():
                 "file": file_path
             }
             self.db.insert_audio_analysis(phoneNumber, data)
+            if label == 'hap':
+                return SentimentAnalysis.HAPPY
+            elif label == 'neu':
+                return SentimentAnalysis.NEUTRAL
+            elif label == 'sad':
+                return SentimentAnalysis.SAD
+            else: 
+                return SentimentAnalysis.ANGRY
+
         except Exception as e:
-            print(e)
+            return SentimentAnalysis.NEUTRAL
 
     def analyze_chat(self, chat_history: str):
         tracker = self.db.get_trackers()
