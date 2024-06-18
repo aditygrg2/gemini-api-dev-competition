@@ -45,7 +45,7 @@ class SentimentAnalysis():
             audio = self.map_to_array(file_path)
             chunks = self.split_audio(audio)
             labels = self.analyze_chunks(chunks)
-            return labels
+            return labels.pop()
         except Exception as e:
             print(e)
 
