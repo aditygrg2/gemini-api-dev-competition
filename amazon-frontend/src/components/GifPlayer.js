@@ -1,28 +1,18 @@
-// src/components/GifPlayer.js
-import React, { useState } from 'react';
+import React from 'react';
 
-const GifPlayer = ({ staticImage, animatedGif, label }) => {
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [gifSrc, setGifSrc] = useState(staticImage); // Initially set the source to the static image
-
-  const handleToggleGif = () => {
-    if (isPlaying) {
-      setGifSrc(staticImage); // Revert back to the static image
-    } else {
-      setGifSrc(animatedGif); // Start playing the animated GIF
-    }
-    setIsPlaying(!isPlaying); // Toggle the isPlaying state
-  };
+const GifPlayer = ({ staticImage, animatedGif, isPlaying, label }) => {
+  const gifSrc = isPlaying ? animatedGif : staticImage;
 
   return (
     <div className="flex flex-col items-center">
       <div className="mb-4">
         <img
           src={gifSrc}
-          alt="GIF"
+          alt={`${label} GIF`}
           className="w-64 h-64 mb-4"
         />
       </div>
+      <div>{label}</div>
     </div>
   );
 }
