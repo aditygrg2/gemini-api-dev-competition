@@ -72,47 +72,14 @@ def handle_audio(data):
         with sr.AudioFile(f'audios/{phone_number}/{u}.wav') as source:
             audio = recognizer.record(source)
             text = recognizer.recognize_google(audio)
+            print("Human Said", text)
 
             user_data = """
-                    [{
                 "name": "Raj Patel",
-                "address": {
-                "phone_number": 932489237
-                "apartment_no": "223, Suryasthali Appartment",
-                "area_street": "Manavta Nagar",
-                "landmark": "Hanuman Mandir",
+                "phone_number": "9324899237"
                 "town_city": "Bengaluru",
                 "state": "Karnataka",
-                "pincode": 530068
-                },
-                "email": "raja23@gmail.com",
-                "subscriptionStatus": false,
-                "previousOrders": [
-                    {
-                "order_id": “20234435843-1107”,
-                "status": "Delivered",
-                "transaction": {
-                "transaction_id": "txn123dsafasd",
-                "status": "Successful",
-                "payment_method": "Amazon Pay",
-                "total_amount": 3000,
-                "timestamp": {
-                    "$date": "2024-06-14T18:55:34.443Z"
-                }
-                },
-                "items": [
-                "product_id": 3247387,
-                "name": "HRX Oversized T-Shirt",
-                "description": "Cotton-Comfy fit Oversized T-Shirt",
-                "category": "Clothing-Men-TShirt",
-                "average_rating": 3,
-                "price": 399,
-                "reviews": [
-                    "Very Comfortable and Affordable",
-                    "Cheap and affordable",
-                    "Don't BUY AT ALLLL"
-                ]
-                ],
+                "pincode": "530068"
             """
 
             print(user_dict)
@@ -120,10 +87,10 @@ def handle_audio(data):
             if(user_dict[phone_number]['call_status'] == CallStatus.VerificationChainNotStarted):
                 user_dict[phone_number]['user_query'] = text
                 user_dict[phone_number]['verification_chain'] = VerificationChain(user_data=user_data, user_query=text)
+                print("verification chain started")
                 chat = user_dict[phone_number]['verification_chain'].start_chat()
                 print("124", chat)
                 user_dict[phone_number]['call_status'] = CallStatus.VerificationChainStarted
-                print("End Not Started")
                 convert_to_audio_and_send(chat[1])
                 
             elif(user_dict[phone_number]['call_status'] == CallStatus.VerificationChainStarted):
@@ -145,15 +112,17 @@ def handle_audio(data):
                     chat_instance = user_dict[phone_number]['during_chain'].initialize_model()
                     response = user_dict[phone_number]['during_chain'].start_chat()
                     user_dict[phone_number]['call_status'] = CallStatus.DuringChainStarted
-                    handle_during_chain_conditions(response)
+                    handle_during_chain_conditions(response, phone_number)
 
             else:
                 response = user_dict[phone_number]['during_chain'].send_message(text)
                 handle_during_chain_conditions(response, phone_number)
 
     except sr.UnknownValueError:
+        convert_to_audio_and_send("Can you please repeat? I am unable to understand your query.")
         print("Google Speech Recognition could not understand audio")
     except sr.RequestError as e:
+        convert_to_audio_and_send("Can you please repeat? I am unable to understand your query.")
         print(f"Could not request results from Google Speech Recognition service; {e}")
     finally:
         user_dict[phone_number]['first_time'] = False

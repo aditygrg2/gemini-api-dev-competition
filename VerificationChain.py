@@ -25,9 +25,8 @@ After you have the data, you can verify then by asking pincode, city and state o
 
 Only move ahead with query once you are able to verify pincode and address of the customer.
 
-Call `user_verified` tool if user is verified, else if not verified call `user_not_verified` tool
-
-Always start with: "Welcome to Amazon! and a good greeting"
+Call `user_verified` tool if user is verified, else if not verified call `user_not_verified` tool.
+Good Luck Agent!
 """
 
 class VerificationChainStatus(Enum):
@@ -133,15 +132,24 @@ class VerificationChain():
 
     def start_chat(self):
         print("Start Chat")
-        query = f"""User Query \n\n `{self.user_query}` User Data \n\n `{self.user_data}`"""
+        query = f"""
+        User Query: `{self.user_query}` \n 
+
+        [Use this data to verify the user's response] 
+        User Data: `{self.user_data}`"""
         self.chat_instance = self.get_model().start_chat(response_validation=False)
+        print(query)
         return self.send_message(query)
 
     def send_message(self, message):
-        response = self.chat_instance.send_message(message, safety_settings=self.safety_config)
+        print(self.chat_instance.history)
+        # response = self.chat_instance.send_message(message, safety_settings=self.safety_config)
+        response = self.chat_instance.send_message(message)
         
         final_response = ""
         function_call = response.candidates[0].content.parts[0].function_call
+
+        print(function_call)
 
         if(not function_call):
             ai_reply = self.format_text(response.candidates[0].content.parts[0].text)
@@ -151,6 +159,7 @@ class VerificationChain():
 
             if(function_name == "user_not_verified"):
                 final_response = """I'm sorry, but I am unable to verify the details at this time. Thank you for contacting Amazon!"""
+                self.chat_instance.history = []
                 return (VerificationChainStatus.NOT_VERIFIED, final_response)
             elif(function_name == "user_verified"):
                 final_response = """Thank you for verifying your details."""

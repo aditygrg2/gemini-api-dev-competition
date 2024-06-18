@@ -104,9 +104,9 @@ class DuringChain():
             }
         )
 
-        terminate_if_satisfied = FunctionDeclaration(
-            name = "terminate_if_satisfied",
-            description = "Checks if the user seems satisfied with the answer and terminates the chat accordingly.",
+        closes_the_call = FunctionDeclaration(
+            name = "closes_the_call",
+            description = "When the user seems satisfied, the call is closed by using this tool",
             parameters = {
                 "type": "object",
                 "properties": {"feedback_user": {"type": "string"}},
@@ -126,7 +126,7 @@ class DuringChain():
             function_declarations=[
                 get_data_of_user,
                 get_info_about_query,
-                terminate_if_satisfied,
+                closes_the_call,
                 send_to_agent_for_manual_intervention
             ],
         )
@@ -140,7 +140,7 @@ class DuringChain():
             generation_config=GenerationConfig(temperature=0.5),
             tools=[self.get_tools()],
             system_instruction=SYSTEM_INSTRUCTION,
-            safety_settings=self.safety_config
+            # safety_settings=self.safety_config
         )
 
         chat = model.start_chat(response_validation=False)
@@ -158,11 +158,15 @@ class DuringChain():
         return self.validate_response(response)
 
     def validate_response(self, response):
+        print(response, "Line 161 - During Chain")
         final_response = ""
 
-        function_call = response.candidates[0].content.parts[0].function_call
+        try:
+            function_call = response.candidates[0].content.parts[0].function_call
+        except:
+            function_call = None
 
-        print(function_call)
+        print("Function Call:" ,  function_call)
 
         if(not function_call):
             ai_reply = self.format_text(response.candidates[0].content.parts[0].text)
@@ -174,7 +178,7 @@ class DuringChain():
                 final_response = """You will soon receive a call from an agent. Thank you for contacting Amazon! This call can now be terminated."""
                 return (DuringChainStatus.AGENT_TRANSFERRED, final_response)
             
-            elif(function_name == "terminate_if_satisfied"):
+            elif(function_name == "closes_the_call"):
                 feedback = function_call.args['feedback']
 
                 # TODO LOG IT SOMEWHERE IN ANALYTICS
@@ -214,6 +218,7 @@ class DuringChain():
                 return (DuringChainStatus.AGENT_TRANSFERRED,"""You will soon receive a call from an agent. Thank you for contacting Amazon! This call can now be terminated.""")
 
     def send_message(self, input):
+        print(self.chat.history)
         print(input)
         response = self.chat.send_message(input)
         return self.validate_response(response)
