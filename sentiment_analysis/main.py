@@ -94,7 +94,7 @@ class SentimentAnalysis(Enum):
             print(e)
             return "Some error occured"
         
-    def analyze_feedback(self, feedback, phoneNumber):
+    def analyze_feedback_and_save(self, feedback, phoneNumber):
         try:
             # self.db.
             pass
