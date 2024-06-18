@@ -17,6 +17,7 @@ from flask_cors import CORS
 from pydub.playback import play
 import base64
 import subprocess
+from database.main import Database
 
 load_dotenv()
 
@@ -28,6 +29,7 @@ recognizer = sr.Recognizer()
 AudioSegment.converter = which("ffmpeg")
 
 client = connect(host=os.environ['MONGO_URL'])
+db = Database()
 
 all_users = client.list_database_names()
 print(all_users)
@@ -67,6 +69,7 @@ def handle_audio(data):
             text = recognizer.recognize_google(audio)
             print(text)
 
+            # user_data = db.get_user(phoneNumber)
             user_data = """
 
                     [{      

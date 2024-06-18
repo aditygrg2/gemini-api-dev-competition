@@ -2,14 +2,20 @@ import torch
 import numpy as np
 import librosa
 from transformers import HubertForSequenceClassification, Wav2Vec2FeatureExtractor
+from database.main import Database
+
+model = HubertForSequenceClassification.from_pretrained("superb/hubert-base-superb-er")
+feature_extractor = Wav2Vec2FeatureExtractor.from_pretrained("superb/hubert-base-superb-er")
 
 class SentimentAnalysis():
     """
     run(file_path) : provides sentiment analysis with audio file located at `file_path`
     """
-    def __init__(self) -> None:
-        self.model = HubertForSequenceClassification.from_pretrained("superb/hubert-base-superb-er")
-        self.feature_extractor = Wav2Vec2FeatureExtractor.from_pretrained("superb/hubert-base-superb-er")
+    def __init__(self, number) -> None:
+        self.model = model
+        self.feature_extractor = feature_extractor
+        self.phoneNumber = number
+        self.db = Database()
 
     def map_to_array(self, file_path):
         speech, _ = librosa.load(file_path, sr=16000, mono=True)
@@ -34,7 +40,7 @@ class SentimentAnalysis():
             labels.append(label)
         return labels
 
-    def run(self, file_path="audio3.mp3"):
+    def analyze_audio(self, file_path):
         try:
             audio = self.map_to_array(file_path)
             chunks = self.split_audio(audio)
@@ -42,3 +48,34 @@ class SentimentAnalysis():
             return labels
         except Exception as e:
             print(e)
+
+    def analyze_audio_and_save(self, file_path, isAgent):
+        def get_type(isAgent: bool):
+            return "AI" if isAgent else "Human"
+
+        try:
+            label = self.analyze_audio(file_path)
+            data = {
+                "type": get_type(isAgent),
+                "sent": label,
+                "file": file_path
+            }
+            self.db.insert_audio_analysis(self.phoneNumber, data)
+        except Exception as e:
+            print(e)
+
+    def analyze_chat(self, chat_history):
+        tracker = self.db.get_trackers()
+        ## tracker lofic
+        ##
+        ##
+        ## goes here
+        return tracker
+
+    def analyze_chat_and_save(self,chat_history):
+        try:
+            wordCount = self.analyze_chat(chat_history)
+            self.db.insert_tracker_analysis({"phoneNumber": self.phoneNumber, "wordTracker": wordCount })
+        except Exception as e:
+            print(e)
+            return "Some error occured"
