@@ -14,11 +14,15 @@ class Database():
         self.trackerCollection = trackers
 
     def get_user(self, phoneNumber):
-        return self.userCollection.find_one({"phoneNumber": phoneNumber})
+        projection = {
+            '_id': 0
+        }
+        return self.userCollection.find_one({"phoneNumber": phoneNumber}, projection)
     
     def get_user_data_for_verification(self, phoneNumber):
         fields = ['phone_no', 'name', 'town_city', 'state', 'pincode']
         projection = {field: 1 for field in fields}
+        projection['_id'] = 0
         return self.userCollection.find_one({"phoneNumber": phoneNumber}, projection)
 
     def insert_audio_analysis(self, phoneNumber, data):
@@ -52,7 +56,7 @@ class Database():
             print(e)
 
     def get_trackers(self):
-        return self.trackerCollection.find_one()
+        return self.trackerCollection.find_one(None,{"_id":0})
     
     def insert_tracker_analysis(self, phoneNumber, data):
         try:
