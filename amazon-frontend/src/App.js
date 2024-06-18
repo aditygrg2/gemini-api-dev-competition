@@ -18,6 +18,7 @@ function App() {
   const mediaRecorder = useRef(null);
   const inputRef = useRef();
   const chunks = useRef([]);
+  const sourceRef = useRef();
 
   const startRecording = async () => {
     setRecord(true);
@@ -76,7 +77,7 @@ function App() {
     socket.on('receive_audio', (data) => {
       console.log("We have some data here");
       const audioBlob = new Blob([data], { type: 'audio/wav' });
-      setReceivedAudio(URL.createObjectURL(audioBlob));
+      sourceRef.current = URL.createObjectURL(audioBlob);
     });
   }, []);
 
@@ -117,9 +118,9 @@ function App() {
         >
           Stop
         </button>
-        {receivedAudio && (
+        {sourceRef.current && (
           <audio controls>
-            <source src={receivedAudio} type="audio/wav" />
+            <source ref={sourceRef} src={sourceRef.current} type="audio/wav" />
             Your browser does not support the audio element.
           </audio>
         )}

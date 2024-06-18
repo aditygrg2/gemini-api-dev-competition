@@ -196,7 +196,7 @@ class DuringChain():
 
                 print(response)
 
-                return (DuringChainStatus.IN_PROGRESS_USER_QUERY, self.format_text(response[1].candidates[0].content.parts[0].text))
+                return (DuringChainStatus.IN_PROGRESS_USER_QUERY, self.format_text(response[1]))
 
             elif(function_name == "get_answers_to_general_help"):
                 response = self.send_message(
@@ -208,7 +208,7 @@ class DuringChain():
                     )
                 )
 
-                return (DuringChainStatus.IN_PROGRESS_RETRIEVAL, self.format_text(response[1].candidates[0].content.parts[0].text))
+                return (DuringChainStatus.IN_PROGRESS_RETRIEVAL, self.format_text(response[1]))
 
             else:
                 return (DuringChainStatus.AGENT_TRANSFERRED,"""You will soon receive a call from an agent. Thank you for contacting Amazon! This call can now be terminated.""")

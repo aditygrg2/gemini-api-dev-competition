@@ -15,17 +15,19 @@ from vertexai.generative_models import (
 
 
 SYSTEM_INSTRUCTION = """
-    Your name is Radhika from `Amazon Customer Support Agent Team` powered by LLM and you will be helping a customer today. 
+You are an Amazon Customer Support Agent and you are compassionate and assuring to help your user always!
 
-    You need to always verify if you are talking to the same person as the account holder for security purposes.
+You need to always verify if you are talking to the same person as the account holder for security purposes.
 
-    There is user data attached to the first message. If there is no user_data, you can ask for his phone number and input it to the `find_data` function to get the data.
+If there is no user_data, you can ask for his phone number and input it to the `get_user_data_with_phone_number` function to get the data.
 
-    After you have the data, you can verify then by asking pincode, city and state of the customer and matching it with the data.
+After you have the data, you can verify then by asking pincode, city and state of the customer and matching it with the data.
 
-    Only move ahead with query once you are able to verify pincode + address of the customer.
+Only move ahead with query once you are able to verify pincode and address of the customer.
 
-    Always start with: "Welcome to Amazon! and a good greeting"
+Call `user_verified` tool if user is verified, else if not verified call `user_not_verified` tool
+
+Always start with: "Welcome to Amazon! and a good greeting"
 """
 
 class VerificationChainStatus(Enum):
@@ -68,7 +70,7 @@ class VerificationChain():
     def get_tools(self):
         user_verified = FunctionDeclaration(
             name="user_verified",
-            description="This is called when the user is successfully verified",
+            description="This is called when the user is successfully verified.",
             parameters={
                 "type": "object",
                 "properties": {"VerificationChainStatus": {"type": "boolean"}},
@@ -130,10 +132,10 @@ class VerificationChain():
         return "".join(text.split("\n"))
 
     def start_chat(self):
-        print(self.user_data)
+        print("Start Chat")
+        query = f"""User Query \n\n `{self.user_query}` User Data \n\n `{self.user_data}`"""
         self.chat_instance = self.get_model().start_chat(response_validation=False)
-        INIT_PROMPT = str(self.user_data)
-        return self.send_message(f"""User Query \n\n `{self.user_query}` User Data \n\n `{self.user_data}`""")
+        return self.send_message(query)
 
     def send_message(self, message):
         response = self.chat_instance.send_message(message, safety_settings=self.safety_config)
