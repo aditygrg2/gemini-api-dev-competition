@@ -15,7 +15,7 @@ class Database():
         self.trackerCollection = trackers
 
     def get_user(self, phoneNumber):
-        return self.userCollection.find_one({"phoneNumber": phoneNumber})
+        return self.userCollection.find_one({"phoneNumber": phoneNumber},{"_id":0})
 
     def insert_audio_analysis(self, phoneNumber, data):
         # {
@@ -48,7 +48,7 @@ class Database():
             print(e)
 
     def get_trackers(self):
-        return self.trackerCollection.find_one()
+        return self.trackerCollection.find_one(None,{"_id":0})
     
     def insert_tracker_analysis(self, phoneNumber, data):
         try:
