@@ -86,10 +86,17 @@ class SentimentAnalysis(Enum):
             count[word] = chat_history.count(word)
         return {"title":title,"trackerCount":count}
 
-    def analyze_chat_and_save(self,chat_history,phoneNumber):
+    def analyze_chat_and_save(self, chat_history, phoneNumber):
         try:
             tracker_analysis = self.analyze_chat(chat_history)
             self.db.insert_tracker_analysis(phoneNumber,tracker_analysis)
         except Exception as e:
             print(e)
             return "Some error occured"
+        
+    def analyze_feedback(self, feedback, phoneNumber):
+        try:
+            # self.db.
+            pass
+        except Exception as e:
+            print(e)
