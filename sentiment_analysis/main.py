@@ -64,18 +64,19 @@ class SentimentAnalysis():
         except Exception as e:
             print(e)
 
-    def analyze_chat(self, chat_history):
+    def analyze_chat(self, chat_history: str):
         tracker = self.db.get_trackers()
-        ## tracker lofic
-        ##
-        ##
-        ## goes here
-        return tracker
+        words = tracker['words']
+        title = tracker['title']
+        count = dict()
+        for word in words:
+            count[word] = chat_history.count(word)
+        return {"title":title,"trackerCount":count}
 
     def analyze_chat_and_save(self,chat_history):
         try:
-            wordCount = self.analyze_chat(chat_history)
-            self.db.insert_tracker_analysis({"phoneNumber": self.phoneNumber, "wordTracker": wordCount })
+            tracker_analysis = self.analyze_chat(chat_history)
+            self.db.insert_tracker_analysis(self.phoneNumber,tracker_analysis)
         except Exception as e:
             print(e)
             return "Some error occured"

@@ -18,6 +18,7 @@ from pydub.playback import play
 import base64
 import subprocess
 from database.main import Database
+from sentiment_analysis.main import SentimentAnalysis
 
 load_dotenv()
 
@@ -30,6 +31,7 @@ AudioSegment.converter = which("ffmpeg")
 
 client = connect(host=os.environ['MONGO_URL'])
 db = Database()
+sentiment = SentimentAnalysis()
 
 all_users = client.list_database_names()
 print(all_users)

@@ -31,6 +31,15 @@ class Database():
         #             "sent":"hap",
         #             "file":"fielpath"
         #         },
+        #     ],
+        #     "trackers":[
+        #         {
+        #             "title":"Amazon great indian sale",
+        #             "trackerCount":{
+        #                 "winter":2,
+        #                 "great":3
+        #             }
+        #         }
         #     ]
         # }
         try:
@@ -41,8 +50,8 @@ class Database():
     def get_trackers(self):
         return self.trackerCollection.find_one()
     
-    def insert_tracker_analysis(self, data):
+    def insert_tracker_analysis(self, phoneNumber, data):
         try:
-            self.trackerCollection.insert_one(data)
+            self.analysisCollection.update_one({"phoneNumber": phoneNumber},{"$push": {"trackers": data}},upsert=True)
         except Exception as e:
             print(e)
