@@ -94,9 +94,8 @@ class SentimentAnalysis(Enum):
             print(e)
             return "Some error occured"
         
-    def analyze_feedback_and_save(self, feedback, phoneNumber):
+    def analyze_feedback_and_save(self, feedback, rating, phoneNumber):
         try:
-            # self.db.
-            pass
+            self.db.insert_feedback_analysis(phoneNumber,{"text":feedback,"score":rating})
         except Exception as e:
             print(e)
