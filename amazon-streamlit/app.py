@@ -84,6 +84,7 @@ def get_analysis():
         return analysis
     except Exception as e:
         print(e)
+
 analysis = get_analysis()
 recent_call = analysis['recent']
 agent_sentiment = {
@@ -326,8 +327,8 @@ with tab1:
                     <th>Phone Number</th>
                     <th>Contact Sentiment</th>
                     <th>Agent Sentiment</th>
-                    <th>feedback score</th>
-                    <th>feedback text</th>
+                    <th>Feedback score</th>
+                    <th>Feedback text</th>
                     <th>Recording</th>
                 </tr>
             </thead>
