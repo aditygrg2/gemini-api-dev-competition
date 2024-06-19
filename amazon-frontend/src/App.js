@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import GifPlayer from './components/GifPlayer';
-import gifPlaceholder from './frame1.png'; // Replace with the path to your static placeholder image
-import customerGifPlaceholder from './headphone.jpg';
-import gifAnimatedCustomer from './customer.gif'; // Replace with the path to your customer animated GIF
-import gifAnimatedParallel from './customer_headphone.gif'; // Replace with the path to your parallel animated GIF
+import gifPlaceholder from './frame1.png'; 
+import customerGifPlaceholder from './frame2.jpg';
+import gifAnimatedCustomer from './customer.gif';
+import gifAnimatedParallel from './customer_headphone.gif'; 
 import io from 'socket.io-client';
 import { ReactMic } from 'react-mic';
 import amazon from './images.png'
@@ -16,6 +16,8 @@ function App() {
   const [recordedUrl, setRecordedUrl] = useState('');
   const [isCustomerGifPlaying, setIsCustomerGifPlaying] = useState(false);
   const [isAgentGifPlaying, setIsAgentGifPlaying] = useState(false);
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [isPhoneNumberValid, setIsPhoneNumberValid] = useState(false);
   const mediaStream = useRef(null);
   const mediaRecorder = useRef(null);
   const inputRef = useRef();
@@ -23,9 +25,9 @@ function App() {
   const sourceRef = useRef();
 
   const startRecording = async () => {
+    if (!isPhoneNumberValid) return; // Prevent starting recording if phone number is invalid
     setRecord(true);
     setIsCustomerGifPlaying(true);
-    setIsAgentGifPlaying(true);
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       mediaStream.current = stream;
@@ -45,7 +47,7 @@ function App() {
           const base64data = reader.result.split(',')[1];
           socket.emit('send_audio', {
             data: base64data,
-            phone_number: inputRef.current.value
+            phone_number: phoneNumber
           });
         };
         reader.readAsDataURL(recordedBlob);
@@ -59,7 +61,6 @@ function App() {
   const stopRecording = () => {
     setRecord(false);
     setIsCustomerGifPlaying(false);
-    setIsAgentGifPlaying(false);
 
     if (mediaRecorder.current && mediaRecorder.current.state === 'recording') {
       mediaRecorder.current.stop();
@@ -79,7 +80,26 @@ function App() {
     });
   }, []);
 
-  useEffect(() => {}, [receivedAudio])
+  useEffect(() => {
+    if (audioRef.current) {
+      const audioElement = audioRef.current;
+      audioElement.addEventListener('play', () => {
+        setIsCustomerGifPlaying(true);
+      });
+      audioElement.addEventListener('pause', () => {
+        setIsCustomerGifPlaying(false);
+      });
+      audioElement.addEventListener('ended', () => {
+        setIsCustomerGifPlaying(false);
+      });
+    }
+  }, [receivedAudio]);
+
+  const handlePhoneNumberChange = (e) => {
+    const value = e.target.value;
+    setPhoneNumber(value);
+    setIsPhoneNumberValid(value.length === 10);
+  };
 
   return (
     <div className="flex flex-col justify-between items-center min-h-screen bg-gradient-to-r from-gray-100 via-gray-200 to-gray-300 p-4">
@@ -126,7 +146,10 @@ function App() {
       <div className='flex flex-row justify-around w-full max-w-md mb-8'>
         <button
           onClick={startRecording}
-          className="px-4 py-2 bg-blue-500 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-md transition duration-300"
+          className={`px-4 py-2 ${
+            isPhoneNumberValid ? 'bg-blue-500 hover:bg-blue-700' : 'bg-gray-400 cursor-not-allowed'
+          } text-white font-semibold rounded-lg shadow-md transition duration-300`}
+          disabled={!isPhoneNumberValid}
         >
           Start
         </button>
@@ -134,11 +157,14 @@ function App() {
           ref={inputRef}
           type="number"
           placeholder="Enter your phone number"
+          value={phoneNumber}
+          onChange={handlePhoneNumberChange}
           className="px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-300"
         />
         <button
           onClick={stopRecording}
           className="px-4 py-2 bg-blue-500 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-md transition duration-300"
+          disabled={!isPhoneNumberValid}
         >
           Stop
         </button>
