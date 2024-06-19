@@ -199,14 +199,49 @@ body {
 </style>
 """
 
+header_html = """
+<style>
+    .header-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 20px;
+    }
+    .header-content {
+        display: flex;
+        align-items: center;
+    }
+    .header-title {
+        font-size: 42px;
+        margin: 0 10px;
+    }
+    .divider {
+        height: 60px;
+        border-left: 2px solid #aaa;
+        margin: 0 20px;
+    }
+    .header-logo {
+        width: 120px; /* Adjust size as needed */
+        height: auto;
+        margin-right: 10px;
+        border-radius: 6px;
+    }
+</style>
+<div class="header-container">
+    <div class="header-content">
+        <img src="https://www.hatchwise.com/wp-content/uploads/2022/05/amazon-logo-1024x683.png" class="header-logo">
+        <div class="divider"></div>
+        <div class="header-title">Sentiment Analysis Results</div>
+    </div>
+</div>
+"""
+
 # Streamlit app
 st.set_page_config(page_title='Streamlit App', page_icon=None, layout='wide', initial_sidebar_state='auto')
 st.markdown(
-    background_css,
+    header_html,
     unsafe_allow_html=True
 )
-
-st.title('Sentiment Analysis Results')
 
 # Create tabs
 tab1, tab2 = st.tabs(["Sentiment Analysis", "Conversational Trackers"])
