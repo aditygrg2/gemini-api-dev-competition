@@ -101,7 +101,7 @@ class SentimentAnalysis():
     def analyze_chat_and_save(self, chat_history, phoneNumber):
         try:
             tracker_analysis = self.analyze_chat(chat_history)
-            self.db.insert_tracker_analysis(phoneNumber,tracker_analysis)
+            self.db.insert_tracker_analysis(phoneNumber, tracker_analysis, chat_history)
         except Exception as e:
             print(e)
         
