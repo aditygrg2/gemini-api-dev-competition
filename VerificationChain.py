@@ -13,6 +13,7 @@ from vertexai.generative_models import (
     Tool,
 )
 
+commented = ""
 
 SYSTEM_INSTRUCTION = """
 You are an Amazon Customer Support Agent and you are compassionate and assuring to help your user always!
@@ -21,7 +22,7 @@ You need to always verify if you are talking to the same person as the account h
 
 If there is no user_data, you can ask for his phone number and input it to the `get_user_data_with_phone_number` function to get the data.
 
-After you have the data, you can verify then by asking pincode, city and state of the customer and matching it with the data.
+After you have the data, you can verify then by asking pincode and city and state of the customer and matching it with the data.
 
 Only move ahead with query once you are able to verify pincode and address of the customer.
 
@@ -35,7 +36,7 @@ class VerificationChainStatus(Enum):
     IN_PROGRESS = 2
 
 class VerificationChain():
-    def __init__(self, user_data, user_query, system_message = SYSTEM_INSTRUCTION) -> None:
+    def __init__(self, user_data, user_query, phone_number, system_message = SYSTEM_INSTRUCTION) -> None:
         self.system_message = system_message
         self.user_data = user_data
         self.user_query = user_query
@@ -62,6 +63,7 @@ class VerificationChain():
             )
         ]
         self.chat_instance = None
+        self.phone_number = phone_number
 
         vertexai.init(location=os.environ['LOCATION'], project=os.environ['PROJECT_ID'])
 
@@ -134,8 +136,9 @@ class VerificationChain():
         print("Start Chat")
         query = f"""
         User Query: `{self.user_query}` \n 
+        Phone Number: `{self.phone_number}` \n
 
-        [Use this data to verify the user's response] 
+        [Ask pincode And `city and state` from user and match with this data, this is not provided by user, but received from database.]
         User Data: `{self.user_data}`"""
         self.chat_instance = self.get_model().start_chat(response_validation=False)
         print(query)
@@ -147,13 +150,24 @@ class VerificationChain():
         response = self.chat_instance.send_message(message)
         
         final_response = ""
-        function_call = response.candidates[0].content.parts[0].function_call
+        try:
+            function_call = response.candidates[0].content.parts[0].function_call
+        except Exception as e:
+            function_call = None
 
         print(function_call)
+        print(response)
 
         if(not function_call):
-            ai_reply = self.format_text(response.candidates[0].content.parts[0].text)
-            return (VerificationChainStatus.IN_PROGRESS, ai_reply)
+            not_function_text = ""
+            try:
+                not_function_text = response.candidates[0].content.parts[0].text
+                ai_reply = self.format_text(not_function_text)
+                return (VerificationChainStatus.IN_PROGRESS, ai_reply)
+            except:
+                final_response = """You will receive a callback from Amazon. Thank you for contacting us!"""
+                return (VerificationChainStatus.NOT_VERIFIED, final_response)
+            
         else:
             function_name = response.candidates[0].content.parts[0].function_call.name
 

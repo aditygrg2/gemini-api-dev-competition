@@ -2,6 +2,7 @@ from enum import Enum
 from mongoengine import connect
 from dotenv import load_dotenv
 import os
+import re
 import models.address as Address, models.orders as Order, models.product as Product, models.transactionDetail as Transaction, models.user as User
 from VerificationChain import VerificationChain, VerificationChainStatus
 from DuringChain import DuringChain, DuringChainStatus
@@ -20,6 +21,8 @@ import base64
 import subprocess
 from database.main import Database
 from sentiment_analysis.main import SentimentAnalysis
+from sentiment_analysis.main import SentimentTypes
+
 
 load_dotenv()
 
@@ -71,7 +74,13 @@ def handle_audio(data):
         with open(f'audios/{phone_number}/{u}.mp3', 'wb') as audio_file:
             audio_file.write(audio_data)
 
-        sentiment.analyze_audio_and_save(f'audios/{phone_number}/{u}.mp3', False, phone_number)
+        senti = sentiment.analyze_audio_and_save(f'audios/{phone_number}/{u}.mp3', False, phone_number)
+
+        if(senti == SentimentTypes.NEGATIVE):
+            if(user_dict[phone_number]['call_status'] == CallStatus.DuringChainStarted):
+                del user_dict[phone_number]
+                reply = """I am sorry to listen that you are frustrated. I am forwarding your call to the agent."""
+                convert_to_audio_and_send(reply, phone_number, u)
 
         subprocess.call(['ffmpeg', '-i', f'audios/{phone_number}/{u}.mp3', f'audios/{phone_number}/{u}.wav'])
         
@@ -94,7 +103,7 @@ def handle_audio(data):
 
             if(user_dict[phone_number]['call_status'] == CallStatus.VerificationChainNotStarted):
                 user_dict[phone_number]['user_query'] = text
-                user_dict[phone_number]['verification_chain'] = VerificationChain(user_data=user_data, user_query=text)
+                user_dict[phone_number]['verification_chain'] = VerificationChain(user_data=user_data, user_query=text, phone_number=phone_number)
                 print("verification chain started")
                 chat = user_dict[phone_number]['verification_chain'].start_chat()
                 print("124", chat)
@@ -139,6 +148,7 @@ def handle_audio(data):
 
 def convert_to_audio_and_send(text, phone_number, u):
     print("AI Text", text)
+    text = text.replace("*", "")
     tts = gTTS(text)
     audio_output_buffer = BytesIO()
     tts.write_to_fp(audio_output_buffer)
