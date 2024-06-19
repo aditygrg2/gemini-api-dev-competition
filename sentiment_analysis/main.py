@@ -105,6 +105,12 @@ class SentimentAnalysis():
         except Exception as e:
             print(e)
 
+    def analyze_feedback_and_save_ai(self, feedback_text, rating, phoneNumber):
+        try:
+            self.db.insert_feedback_analysis_ai(phoneNumber,{"text":feedback_text,"score":rating})
+        except Exception as e:
+            print(e)
+
     def get_analysis(self):
         try:
             call_data = self.db.get_analyzed_data()

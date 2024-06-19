@@ -34,12 +34,12 @@ class Database():
         #     "call_st":[
         #         {
         #             "type":"AI",
-        #             "sent":"hap",
+        #             "sent":'pos',
         #             "file":"filepath"
         #         },
         #         {
         #             "type":"human",
-        #             "sent":"hap",
+        #             "sent":'pos',
         #             "file":"fielpath"
         #         },
         #         ...
@@ -54,7 +54,7 @@ class Database():
         #         },
         #         ...
         #     ],
-        #     "feedback": {
+        #     "aegnt_feedback": {
         #         "score": 7,
         #         "text":"It's nice"
         #     }
@@ -79,7 +79,17 @@ class Database():
                 "score":data['score'],
                 "text": data['text']
             }
-            self.analysisCollection.update_one({"phone_number":phoneNumber},{"feedback":feedback},upsert=True)
+            self.analysisCollection.update_one({"phone_number":phoneNumber},{"contact_feedback":feedback},upsert=True)
+        except Exception as e:
+            print(e)
+
+    def insert_feedback_analysis_ai(self,phoneNumber, data):
+        try:
+            feedback = {
+                "score":data['score'],
+                "text": data['text']
+            }
+            self.analysisCollection.update_one({"phone_number":phoneNumber},{"agent_feedback": feedback},upsert=True)
         except Exception as e:
             print(e)
     
