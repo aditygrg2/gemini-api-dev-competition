@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import GifPlayer from './components/GifPlayer';
 import gifPlaceholder from './frame1.png'; 
-import customerGifPlaceholder from './frame2.jpg';
+import customerGifPlaceholder from './frame2.png';
 import gifAnimatedCustomer from './customer.gif';
 import gifAnimatedParallel from './customer_headphone.gif'; 
 import io from 'socket.io-client';
 import { ReactMic } from 'react-mic';
-import amazon from './images.png'
+import amazon from './images.png';
 
 const socket = io('http://localhost:8000'); // Update the port as per your backend
 
@@ -23,6 +23,7 @@ function App() {
   const inputRef = useRef();
   const chunks = useRef([]);
   const sourceRef = useRef();
+  const audioRef = useRef(null);
 
   const startRecording = async () => {
     if (!isPhoneNumberValid) return; // Prevent starting recording if phone number is invalid
@@ -84,13 +85,13 @@ function App() {
     if (audioRef.current) {
       const audioElement = audioRef.current;
       audioElement.addEventListener('play', () => {
-        setIsCustomerGifPlaying(true);
+        setIsAgentGifPlaying(true);
       });
       audioElement.addEventListener('pause', () => {
-        setIsCustomerGifPlaying(false);
+        setIsAgentGifPlaying(false);
       });
       audioElement.addEventListener('ended', () => {
-        setIsCustomerGifPlaying(false);
+        setIsAgentGifPlaying(false);
       });
     }
   }, [receivedAudio]);
@@ -164,14 +165,13 @@ function App() {
         <button
           onClick={stopRecording}
           className="px-4 py-2 bg-blue-500 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-md transition duration-300"
-          disabled={!isPhoneNumberValid}
         >
           Stop
         </button>
       </div>
       {receivedAudio && (
         <div className="mt-8">
-          <audio controls autoPlay className="" key={receivedAudio}>
+          <audio controls autoPlay className="" key={receivedAudio} ref={audioRef}>
             <source src={receivedAudio} type="audio/wav" />
             Your browser does not support the audio element.
           </audio>
