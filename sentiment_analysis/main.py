@@ -16,7 +16,7 @@ class SentimentTypes(Enum):
     NEGATIVE = 2
 
 
-class SentimentAnalysis(Enum):
+class SentimentAnalysis():
 
     """
     run(file_path) : provides sentiment analysis with audio file located at `file_path`
