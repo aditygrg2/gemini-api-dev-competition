@@ -4,15 +4,20 @@ import numpy as np
 import librosa
 from transformers import HubertForSequenceClassification, Wav2Vec2FeatureExtractor
 from database.main import Database
+from utility.main import Helper
 
 model = HubertForSequenceClassification.from_pretrained("superb/hubert-base-superb-er")
 feature_extractor = Wav2Vec2FeatureExtractor.from_pretrained("superb/hubert-base-superb-er")
+helper = Helper()
+
+class SentimentTypes(Enum):
+    POSITIVE = 0
+    NEUTRAL = 1
+    NEGATIVE = 2
+
 
 class SentimentAnalysis(Enum):
-    HAPPY = 0
-    NEUTRAL = 1
-    SAD = 2
-    ANGRY = 3
+
     """
     run(file_path) : provides sentiment analysis with audio file located at `file_path`
     """
@@ -59,23 +64,24 @@ class SentimentAnalysis(Enum):
 
         try:
             label = self.analyze_audio(file_path)
+            if not label:
+                label = 'neu'
+
             data = {
                 "type": get_type(isAgent),
                 "sent": label,
                 "file": file_path
             }
             self.db.insert_audio_analysis(phoneNumber, data)
-            if label == 'hap':
-                return SentimentAnalysis.HAPPY
+            if label == 'pos':
+                return SentimentTypes.POSITIVE
             elif label == 'neu':
-                return SentimentAnalysis.NEUTRAL
-            elif label == 'sad':
-                return SentimentAnalysis.SAD
-            else: 
-                return SentimentAnalysis.ANGRY
+                return SentimentTypes.NEUTRAL
+            else:
+                return SentimentTypes.NEGATIVE
 
         except Exception as e:
-            return SentimentAnalysis.NEUTRAL
+            return SentimentTypes.NEUTRAL
 
     def analyze_chat(self, chat_history: str):
         tracker = self.db.get_trackers()
@@ -92,10 +98,17 @@ class SentimentAnalysis(Enum):
             self.db.insert_tracker_analysis(phoneNumber,tracker_analysis)
         except Exception as e:
             print(e)
-            return "Some error occured"
         
-    def analyze_feedback_and_save(self, feedback, rating, phoneNumber):
+    def analyze_feedback_and_save(self, feedback_text, rating, phoneNumber):
         try:
-            self.db.insert_feedback_analysis(phoneNumber,{"text":feedback,"score":rating})
+            self.db.insert_feedback_analysis(phoneNumber,{"text":feedback_text,"score":rating})
+        except Exception as e:
+            print(e)
+
+    def get_analysis(self):
+        try:
+            call_data = self.db.get_analyzed_data()
+            analysis = helper.create_analysis(call_data)
+            return analysis
         except Exception as e:
             print(e)

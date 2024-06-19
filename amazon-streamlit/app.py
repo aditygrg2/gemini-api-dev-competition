@@ -2,18 +2,100 @@ import streamlit as st
 import plotly.graph_objects as go
 import pandas as pd
 import streamlit.components.v1 as components
+from dotenv import load_dotenv
+from pymongo import MongoClient
+import os
+import math
+load_dotenv()
 
-# Sample sentiment analysis results in percentages
+client = MongoClient(os.environ['MONGO_URL'])
+db = client['amazon_data']
+analysisColl = db['analysis']
+
+class Helper():
+
+    def __init__(self) -> None:
+        pass
+
+    def get_audio_score_for_agent(self, call_sent):
+        count = {'pos':0,'neu':0,'neg':0}
+        for item in call_sent:
+            if item['type']=="AI":
+                count[item['sent']] = count[item['sent']] + 1
+        total = len(call_sent)
+        count['pos'] = math.ceil(count['pos']*100/total)
+        count['neg'] = math.ceil(count['neg']*100/total)
+        count['neu'] = 100 - count['neg'] - count['pos']
+        return count
+
+    def get_audio_score_for_human(self, call_sent):
+        count = {'pos':0,'neu':0,'neg':0}
+        for item in call_sent:
+            if item['type']=="Human":
+                count[item['sent']] = count[item['sent']] + 1
+        total = len(call_sent)
+        count['pos'] = math.ceil(count['pos']*100/total)
+        count['neg'] = math.ceil(count['neg']*100/total)
+        count['neu'] = 100 - count['neg'] - count['pos']
+        return count
+
+    def get_audio_score(self, call_sent):
+        def get_overall_sentiment(sent: dict):
+            max_key = max(sent, key=lambda k: sent[k])
+            sent['overall'] = max_key
+            if max_key =='pos':
+                sent['text'] = "Positive sentiment"
+            elif max_key == 'neg':
+                sent['text'] = 'Negative sentiment'
+            else:
+                sent['text'] = 'Neutral sentiment'
+            return sent
+
+        ai = self.get_audio_score_for_agent(call_sent)
+        human = self.get_audio_score_for_human(call_sent)
+        return {"agent_sentiment":get_overall_sentiment(ai),"contact_sentiment":get_overall_sentiment(human)}
+
+    def get_recent_call_analysis(self, call_sent):
+        return self.get_audio_score(call_sent[0]['call_sent'])
+
+
+    def calculate_call_sentiment(self, call_data):
+        try:
+            audio_analysis = self.get_audio_score(call_data['call_sent'])
+            return {"phone_number": call_data['phone_number'], "contact_sentiment":audio_analysis['contact_sentiment'],"agent_sentiment": audio_analysis['agent_sentiment'],"customer_feedback_rating": call_data['feedback']['score'],"customer_feedback_text":call_data['feedback']['text']}
+        except Exception as e:
+            print(e)
+
+    def create_analysis(self, call_list):
+        recent = self.get_recent_call_analysis(call_list)
+        sentiment_list = []
+        for call in call_list:
+            sentiment_list.append(self.calculate_call_sentiment(call))
+        return {"recent":recent, "sentiment_list": sentiment_list}
+
+
+def get_analysis():
+    try:
+        call_data = analysisColl.find()
+        data = []
+        for doc in call_data:
+            data.append(doc)
+        analysis = Helper().create_analysis(data)
+        return analysis
+    except Exception as e:
+        print(e)
+analysis = get_analysis()
+recent_call = analysis['recent']
 agent_sentiment = {
-    'positive': 8,
-    'neutral': 92,
-    'negative': 0
+    'positive': recent_call['agent_sentiment']['pos'] ,
+    'neutral':  recent_call['agent_sentiment']['neu'],
+    'negative':  recent_call['agent_sentiment']['neg'],
 }
 
 contact_sentiment = {
-    'positive': 25,
-    'neutral': 50,
-    'negative': 25
+    'positive':  recent_call['contact_sentiment']['pos'] ,
+    'neutral':  recent_call['contact_sentiment']['neu'] ,
+    'negative':  recent_call['contact_sentiment']['neg'] ,
 }
 
 # Function to create a sentiment bar chart
@@ -156,22 +238,9 @@ with tab1:
         st.markdown(create_custom_legend(), unsafe_allow_html=True)
         st.markdown("</div>", unsafe_allow_html=True)
 
-    def fetch_data_from_db():
-        # Here you would connect to your database and fetch the data
-        # For now, we'll use a sample dataframe
-        data = {
-            "task_type": ["Incoming Call", "Incoming Call", "Manual Outbound Call"],
-            "contact_name": ["Aditya Garg", "Aditya Garg", "Aditya Garg"],
-            "contact_number": ["+918630111400", "+918630111400", "+918630111400"],
-            "agent_name": ["Parteek Goyal", "Parteek Goyal", "Aditya"],
-            "agent_id": ["parteekcoder", "parteekcoder", "aditya@it.com"],
-            "contact_sentiment": ["Neutral Contact", "Positive Contact", "Negative Contact"],
-            "agent_sentiment": ["Neutral Agent", "Neutral Agent", "Neutral Agent"]
-        }
-        return pd.DataFrame(data)
 
     # Fetch data
-    data_df = fetch_data_from_db()
+    data_df = analysis['sentiment_list']
 
     # CSS for styling the table
     table_css = """
@@ -231,44 +300,39 @@ with tab1:
     # Convert the DataFrame to HTML
     def generate_table_html(data_df):
         rows = []
-        for _, row in data_df.iterrows():
+        for row in data_df:
+            print(row)
             contact_sentiment_class = {
-                "Neutral Contact": "contact-sentiment-neutral",
-                "Positive Contact": "contact-sentiment-positive",
-                "Negative Contact": "contact-sentiment-negative"
-            }.get(row['contact_sentiment'], "contact-sentiment-neutral")
+                "Neutral sentiment": "contact-sentiment-neutral",
+                "Positive sentiment": "contact-sentiment-positive",
+                "Negative sentiment": "contact-sentiment-negative"
+            }.get(row['contact_sentiment']['text'], "contact-sentiment-neutral")
 
             agent_sentiment_class = "agent-sentiment-neutral"
 
-            rows.append(f"""
-                <tr>
-                    <td>{row['task_type']}</td>
-                    <td>{row['contact_name']}<br>{row['contact_number']}</td>
-                    <td>{row['agent_name']}<br>{row['agent_id']}</td>
-                    <td><span class="{contact_sentiment_class}">{row['contact_sentiment']}</span></td>
-                    <td><span class="{agent_sentiment_class}">{row['agent_sentiment']}</span></td>
-                </tr>
-            """)
+            rows.append(f"""<tr>
+                    <td>{row['phone_number']}</td>
+                    <td><span class="{contact_sentiment_class}">{row['contact_sentiment']['text']}</span></td>
+                    <td><span class="{agent_sentiment_class}">{row['agent_sentiment']['text']}</span></td>
+                    <td>{row['customer_feedback_rating']}</td>
+                    <td>{row['customer_feedback_text']}</td>
+                    <td>play</td>
+                </tr>""")
 
         return f"""
         <table style="margin-bottom:100px;">
             <thead>
                 <tr>
-                    <th>Task Type</th>
-                    <th>Contact</th>
-                    <th>Agent</th>
+                    <th>Phone Number</th>
                     <th>Contact Sentiment</th>
                     <th>Agent Sentiment</th>
+                    <th>feedback score</th>
+                    <th>feedback text</th>
+                    <th>Recording</th>
                 </tr>
             </thead>
             <tbody>
-                            <tr>
-                    <td>{row['task_type']}</td>
-                    <td>{row['contact_name']}<br>{row['contact_number']}</td>
-                    <td>{row['agent_name']}<br>{row['agent_id']}</td>
-                    <td><span class="{contact_sentiment_class}">{row['contact_sentiment']}</span></td>
-                    <td><span class="{agent_sentiment_class}">{row['agent_sentiment']}</span></td>
-                </tr>
+               {''.join(rows)}
             </tbody>
         </table>
         """

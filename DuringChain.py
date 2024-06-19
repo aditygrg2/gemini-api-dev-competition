@@ -17,7 +17,7 @@ from vertexai.generative_models import (
     Part,
     Tool,
 )
-
+from sentiment_analysis.main import SentimentTypes
 
 class DuringChainStatus(Enum):
     TERMINATED = 0

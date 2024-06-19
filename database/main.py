@@ -28,9 +28,9 @@ class Database():
         projection['_id'] = 0
         return self.userCollection.find_one({"phone_number": phone_number}, projection)
 
-    def insert_audio_analysis(self, phoneNumber, data):
+    def insert_audio_analysis(self, phone_number, data):
         # {
-        #     "phoneNumber":"",
+        #     "phoneNumber":"9878500123",
         #     "call_st":[
         #         {
         #             "type":"AI",
@@ -42,6 +42,7 @@ class Database():
         #             "sent":"hap",
         #             "file":"fielpath"
         #         },
+        #         ...
         #     ],
         #     "trackers":[
         #         {
@@ -50,7 +51,8 @@ class Database():
         #                 "winter":2,
         #                 "great":3
         #             }
-        #         }
+        #         },
+        #         ...
         #     ],
         #     "feedback": {
         #         "score": 7,
@@ -58,7 +60,7 @@ class Database():
         #     }
         # }
         try:
-            analysis.update_one({"phoneNumber":phoneNumber},{"$push": {"call_sent": data}},upsert=True)
+            analysis.update_one({"phone_number":phone_number},{"$push": {"call_sent": data}},upsert=True)
         except Exception as e:
             print(e)
 
@@ -67,12 +69,22 @@ class Database():
     
     def insert_tracker_analysis(self, phoneNumber, data):
         try:
-            self.analysisCollection.update_one({"phoneNumber": phoneNumber},{"$push": {"trackers": data}},upsert=True)
+            self.analysisCollection.update_one({"phone_number": phoneNumber},{"$push": {"trackers": data}},upsert=True)
         except Exception as e:
             print(e)
     
     def insert_feedback_analysis(self,phoneNumber, data):
         try:
-            self.analysisCollection.update_one({"phone_number":phoneNumber},{data},upsert=True)
+            feedback = {
+                "score":data['score'],
+                "text": data['text']
+            }
+            self.analysisCollection.update_one({"phone_number":phoneNumber},{"feedback":feedback},upsert=True)
+        except Exception as e:
+            print(e)
+    
+    def get_analyzed_data(self):
+        try:
+            return self.analysisCollection.find()
         except Exception as e:
             print(e)
