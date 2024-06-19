@@ -51,7 +51,11 @@ class Database():
         #                 "great":3
         #             }
         #         }
-        #     ]
+        #     ],
+        #     "feedback": {
+        #         "score": 7,
+        #         "text":"It's nice"
+        #     }
         # }
         try:
             analysis.update_one({"phoneNumber":phoneNumber},{"$push": {"call_sent": data}},upsert=True)
@@ -64,5 +68,11 @@ class Database():
     def insert_tracker_analysis(self, phoneNumber, data):
         try:
             self.analysisCollection.update_one({"phoneNumber": phoneNumber},{"$push": {"trackers": data}},upsert=True)
+        except Exception as e:
+            print(e)
+    
+    def insert_feedback_analysis(self,phoneNumber, data):
+        try:
+            self.analysisCollection.update_one({"phone_number":phoneNumber},{data},upsert=True)
         except Exception as e:
             print(e)
