@@ -66,6 +66,12 @@ class SentimentAnalysis():
             label = self.analyze_audio(file_path)
             if not label:
                 label = 'neu'
+            if label == 'hap':
+                label = 'pos'
+            elif label == 'neu':
+                label = 'neu'
+            else:
+                label = 'neg'
 
             data = {
                 "type": get_type(isAgent),

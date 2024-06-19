@@ -288,7 +288,6 @@ with tab1:
 
     # Fetch data
     data_df = analysis['sentiment_list']
-    print(data_df)
 
     # CSS for styling the table
     table_css = """
@@ -349,6 +348,7 @@ with tab1:
     def generate_table_html(data_df):
         rows = []
         for row in data_df:
+            print(row['contact_sentiment'])
             contact_sentiment_class = {
                 "Neutral sentiment": "contact-sentiment-neutral",
                 "Positive sentiment": "contact-sentiment-positive",
@@ -397,21 +397,19 @@ with tab1:
     st.markdown(table_html, unsafe_allow_html=True)
     def generate_table_html_tracker(data_df):
         rows = []
+        # last = row['words'].pop()
         for row in data_df:
-
-            agent_sentiment_class = "agent-sentiment-neutral"
 
             rows.append(f"""<tr>
                     <td>{row['title']}</td>
-                    <td><span>{''.join(row['words'])}</span></td>
+                    <td><span>{', '.join(row['words'])}</span></td>
                     </tr>""")
-
         return f"""
         <table style="margin-bottom:100px;">
             <thead>
                 <tr>
-                    <th>title</th>
-                    <th>tokens/words</th>
+                    <th>Title</th>
+                    <th>Tokens/Words</th>
                 </tr>
             </thead>
             <tbody>
@@ -419,12 +417,11 @@ with tab1:
             </tbody>
         </table>
         """
-    html_content = """
-
-    """
-    table_html = generate_table_html(get_trackers())
+    table_html = generate_table_html_tracker(get_trackers())
     st.title("Conversational Trackers")
-    components.html(html_content, height=250, width=800)
+    # components.html(table_html, height=250, width=800)
+    st.markdown(table_css, unsafe_allow_html=True)
+    st.markdown(table_html, unsafe_allow_html=True)
 
 with tab2:
     st.title("Conversational Trackers")
