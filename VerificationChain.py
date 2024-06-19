@@ -133,13 +133,15 @@ class VerificationChain():
         return "".join(text.split("\n"))
 
     def start_chat(self):
+        commented = """
+        [Ask pincode And `city and state` from user and match with this data, this is not provided by user, but received from database.]
+        User Data: `{self.user_data}"""
+        
         print("Start Chat")
         query = f"""
         User Query: `{self.user_query}` \n 
         Phone Number: `{self.phone_number}` \n
-
-        [Ask pincode And `city and state` from user and match with this data, this is not provided by user, but received from database.]
-        User Data: `{self.user_data}`"""
+`"""
         self.chat_instance = self.get_model().start_chat(response_validation=False)
         print(query)
         return self.send_message(query)

@@ -193,8 +193,14 @@ class DuringChain():
                 return (DuringChainStatus.AGENT_TRANSFERRED, final_response)
 
             elif (function_name == "closes_the_call"):
-                feedback = function_call.args[1].fields[0].value[0].string_value
-                rating = function_call.args[0].fields[0].value[0].string_value
+                try:
+                    feedback = function_call.args[1].fields[0].value[0].string_value
+                    rating = function_call.args[0].fields[0].value[0].string_value
+                except:
+                    feedback = 'NULL'
+                    rating = 3
+
+                print(feedback, rating)
 
                 self.sentiment.analyze_chat_and_save(
                     "\n".join(self.chat.history), self.phone_number)

@@ -82,6 +82,9 @@ def handle_audio(data):
                 reply = """I am sorry to listen that you are frustrated. I am forwarding your call to the agent."""
                 convert_to_audio_and_send(reply, phone_number, u)
 
+                socketio.emit('disconnect')
+                return
+
         subprocess.call(['ffmpeg', '-i', f'audios/{phone_number}/{u}.mp3', f'audios/{phone_number}/{u}.wav'])
         
         with sr.AudioFile(f'audios/{phone_number}/{u}.wav') as source:
