@@ -408,8 +408,8 @@ with tab1:
         <table style="margin-bottom:100px;">
             <thead>
                 <tr>
-                    <th>title</th>
-                    <th>tokens/words</th>
+                    <th>Title</th>
+                    <th>Tokens/Words</th>
                 </tr>
             </thead>
             <tbody>
