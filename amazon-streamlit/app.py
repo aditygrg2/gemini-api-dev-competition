@@ -11,6 +11,7 @@ load_dotenv()
 client = MongoClient(os.environ['MONGO_URL'])
 db = client['amazon_data']
 analysisColl = db['analysis']
+trackerColl = db['trackers']
 
 class Helper():
 
@@ -62,7 +63,7 @@ class Helper():
     def calculate_call_sentiment(self, call_data):
         try:
             audio_analysis = self.get_audio_score(call_data['call_sent'])
-            return {"phone_number": call_data['phone_number'], "contact_sentiment":audio_analysis['contact_sentiment'],"agent_sentiment": audio_analysis['agent_sentiment'],"customer_feedback_rating": call_data['feedback']['score'],"customer_feedback_text":call_data['feedback']['text']}
+            return {"phone_number": call_data['phone_number'], "contact_sentiment":audio_analysis['contact_sentiment'],"agent_sentiment": audio_analysis['agent_sentiment'],"customer_feedback_rating": call_data['contact_feedback']['score'],"customer_feedback_text":call_data['contact_feedback']['text'],"agent_feedback_rating": call_data['agent_feedback']['score'],"agent_feedback_text": call_data['agent_feedback']['text']}
         except Exception as e:
             print(e)
 
@@ -82,6 +83,16 @@ def get_analysis():
             data.append(doc)
         analysis = Helper().create_analysis(data)
         return analysis
+    except Exception as e:
+        print(e)
+
+def get_trackers():
+    try:
+        trackers = trackerColl.find()
+        ans = []
+        for tr in trackers:
+            ans.append(tr)
+        return ans
     except Exception as e:
         print(e)
 
@@ -277,6 +288,7 @@ with tab1:
 
     # Fetch data
     data_df = analysis['sentiment_list']
+    print(data_df)
 
     # CSS for styling the table
     table_css = """
@@ -337,7 +349,6 @@ with tab1:
     def generate_table_html(data_df):
         rows = []
         for row in data_df:
-            print(row)
             contact_sentiment_class = {
                 "Neutral sentiment": "contact-sentiment-neutral",
                 "Positive sentiment": "contact-sentiment-positive",
@@ -352,6 +363,8 @@ with tab1:
                     <td><span class="{agent_sentiment_class}">{row['agent_sentiment']['text']}</span></td>
                     <td>{row['customer_feedback_rating']}</td>
                     <td>{row['customer_feedback_text']}</td>
+                    <td>{row['agent_feedback_rating']}</td>
+                    <td>{row['agent_feedback_text']}</td>
                     <td>play</td>
                 </tr>""")
 
@@ -362,8 +375,10 @@ with tab1:
                     <th>Phone Number</th>
                     <th>Contact Sentiment</th>
                     <th>Agent Sentiment</th>
-                    <th>Feedback score</th>
-                    <th>Feedback text</th>
+                    <th>Customer feedback score</th>
+                    <th>Customer Feedback text</th>
+                    <th>Agent feedback score</th>
+                    <th>Agent Feedback text</th>
                     <th>Recording</th>
                 </tr>
             </thead>
@@ -377,130 +392,38 @@ with tab1:
     table_html = generate_table_html(data_df)
 
     # Inject the CSS and HTML into the Streamlit app
-    st.title("Log Table with Transcripts")
+    st.title("Call Log Table")
     st.markdown(table_css, unsafe_allow_html=True)
     st.markdown(table_html, unsafe_allow_html=True)
+    def generate_table_html_tracker(data_df):
+        rows = []
+        for row in data_df:
 
+            agent_sentiment_class = "agent-sentiment-neutral"
+
+            rows.append(f"""<tr>
+                    <td>{row['title']}</td>
+                    <td><span>{''.join(row['words'])}</span></td>
+                    </tr>""")
+
+        return f"""
+        <table style="margin-bottom:100px;">
+            <thead>
+                <tr>
+                    <th>title</th>
+                    <th>tokens/words</th>
+                </tr>
+            </thead>
+            <tbody>
+               {''.join(rows)}
+            </tbody>
+        </table>
+        """
     html_content = """
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <style>
-            table {
-                width: 100%;
-                border-collapse: collapse;
-            }
-            th, td {
-                border: 1px solid #000;
-                padding: 8px;
-                text-align: center;
-            }
-            th {
-                background-color: #f2f2f2;
-            }
-            .low-value {
-                background-color: #ffcccc;
-            }
-        </style>
-    </head>
-    <body style="background-color:#ffffff;">
-        <div id="table-container">
-            <table id="agent-table">
-                <thead>
-                    <tr>
-                        <th>Calls</th>
-                        <th>Avg Agent Sentiment</th>
-                        <th>Avg Contact Sentiment</th>
-                        <th>% of Calls with Negative Agent Sentiment</th>
-                        <th>% of Calls with Negative Contact Sentiment</th>
-                        <th>Talk/Listen Ratio</th>
-                        <th>Avg. Silence</th>
-                        <th>Longest Monologue</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>50</td>
-                        <td>0.75</td>
-                        <td>0.80</td>
-                        <td>10%</td>
-                        <td>5%</td>
-                        <td>1.2</td>
-                        <td>0:02:30</td>
-                        <td>0:05:00</td>
-                    </tr>
-                    <tr>
-                        <td>45</td>
-                        <td>0.60</td>
-                        <td>0.65</td>
-                        <td>15%</td>
-                        <td>20%</td>
-                        <td>1.0</td>
-                        <td>0:03:00</td>
-                        <td>0:04:30</td>
-                    </tr>
-                    <tr>
-                        <td>60</td>
-                        <td>0.85</td>
-                        <td>0.90</td>
-                        <td>5%</td>
-                        <td>3%</td>
-                        <td>1.5</td>
-                        <td>0:01:45</td>
-                        <td>0:03:50</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-        <script>
-            // Threshold values for conditional formatting
-            const thresholds = {
-                avgAgentSentiment: 0.7,
-                avgContactSentiment: 0.75,
-                negativeAgentSentiment: 10,
-                negativeContactSentiment: 10,
-                talkListenRatio: 1.0,
-            };
 
-            // Apply conditional formatting
-            document.querySelectorAll("tbody tr").forEach((row) => {
-                const cells = row.children;
-                if (parseFloat(cells[1].textContent) < thresholds.avgAgentSentiment) {
-                    cells[1].classList.add("low-value");
-                }
-                if (parseFloat(cells[2].textContent) < thresholds.avgContactSentiment) {
-                    cells[2].classList.add("low-value");
-                }
-                if (
-                    parseFloat(cells[3].textContent) < thresholds.negativeAgentSentiment
-                ) {
-                    cells[3].classList.add("low-value");
-                }
-                if (
-                    parseFloat(cells[4].textContent) < thresholds.negativeContactSentiment
-                ) {
-                    cells[4].classList.add("low-value");
-                }
-                if (parseFloat(cells[5].textContent) < thresholds.talkListenRatio) {
-                    cells[5].classList.add("low-value");
-                }
-            });
-
-            // Adjust height and width of the container
-            const container = document.getElementById('table-container');
-            const table = document.getElementById('agent-table');
-            container.style.height = table.offsetHeight + 'px';
-            container.style.width = table.offsetWidth + 'px';
-
-        </script>
-    </body>
-    </html>
     """
-
-    # Embed the HTML content into the Streamlit app without setting height and width statically
-    st.title("Agent Call Status")
+    table_html = generate_table_html(get_trackers())
+    st.title("Conversational Trackers")
     components.html(html_content, height=250, width=800)
 
 with tab2:
