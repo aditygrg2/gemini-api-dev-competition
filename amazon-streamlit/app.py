@@ -63,6 +63,9 @@ class Helper():
     def calculate_call_sentiment(self, call_data):
         try:
             audio_analysis = self.get_audio_score(call_data['call_sent'])
+            len_transcribed = len(call_data.get("transcribe",""))
+            if len_transcribed > 40:
+                call_data["transcribe"] = call_data.get("transcribe","")[0: math.min(len_transcribed,40)] + "..."
             return {"phone_number": call_data['phone_number'], "transcribe": call_data["transcribe"] ,"contact_sentiment":audio_analysis['contact_sentiment'],"agent_sentiment": audio_analysis['agent_sentiment'],"customer_feedback_rating": call_data['contact_feedback']['score'],"customer_feedback_text":call_data['contact_feedback']['text'],"agent_feedback_rating": call_data['agent_feedback']['score'],"agent_feedback_text": call_data['agent_feedback']['text']}
         except Exception as e:
             print(e)
