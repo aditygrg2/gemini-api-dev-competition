@@ -66,7 +66,7 @@ class Helper():
             len_transcribed = len(call_data.get("transcribe",""))
             if len_transcribed > 40:
                 call_data["transcribe"] = call_data.get("transcribe","")[0: math.min(len_transcribed,40)] + "..."
-            return {"phone_number": call_data['phone_number'], "transcribe": call_data["transcribe"] ,"contact_sentiment":audio_analysis['contact_sentiment'],"agent_sentiment": audio_analysis['agent_sentiment'],"customer_feedback_rating": call_data['contact_feedback']['score'],"customer_feedback_text":call_data['contact_feedback']['text'],"agent_feedback_rating": call_data['agent_feedback']['score'],"agent_feedback_text": call_data['agent_feedback']['text']}
+            return {"phone_number": call_data['phone_number'], "transcribe": call_data.get("transcribe","Can't generate transcribe") ,"contact_sentiment":audio_analysis['contact_sentiment'],"agent_sentiment": audio_analysis['agent_sentiment'],"customer_feedback_rating": call_data.get('contact_feedback',dict()).get('score',"not given"),"customer_feedback_text":call_data.get('contact_feedback',dict()).get('text',"not given"),"agent_feedback_rating": call_data.get('agent_feedback',dict()).get('score',"not given"),"agent_feedback_text": call_data.get('agent_feedback',dict()).get('text',"not given")}
         except Exception as e:
             print(e)
 
@@ -75,10 +75,9 @@ class Helper():
         for tr in trackers_list:
             temp = {}
             for call in call_list:
-                cur_tracker = call['trackers']
+                cur_tracker = call.get("trackers",[])
                 for cur_tracker_cnt in cur_tracker:
                     if tr['title']== cur_tracker_cnt['title']:
-                        cur_tracker_title = cur_tracker_cnt['title']
                         cur_tracker_tokens = cur_tracker_cnt['trackerCount']
                         for word in tr['words']:
                             val = cur_tracker_tokens.get(word,0)
@@ -115,16 +114,6 @@ def get_analysis():
         return analysis
     except Exception as e:
         print(e)
-
-def get_word_counts_for_tracker(tracker_title):
-# Hardcoded word counts for demonstration
-    hardcoded_data = {
-        "Amazon Great Indian Sale": {"sale": 6, "discount": 3, "offer": 2, "deal": 4},
-        "Holiday Season Sale": {"holiday": 5, "gift": 7, "sale": 4, "discount": 6},
-        "Back to School": {"school": 8, "backpack": 3, "uniform": 2, "supplies": 5}
-    }
-
-    return hardcoded_data.get(tracker_title,{})
 
 
 def get_trackers():
@@ -389,12 +378,11 @@ with tab1:
     def generate_table_html(data_df):
         rows = []
         for row in data_df:
-            print(row['contact_sentiment'])
             contact_sentiment_class = {
                 "Neutral sentiment": "contact-sentiment-neutral",
                 "Positive sentiment": "contact-sentiment-positive",
                 "Negative sentiment": "contact-sentiment-negative"
-            }.get(row['contact_sentiment']['text'], "contact-sentiment-neutral")
+            }.get(row.get('contact_sentiment',dict()).get('text',"Neutral sentiment"), "contact-sentiment-neutral")
 
             agent_sentiment_class = "agent-sentiment-neutral"
 
