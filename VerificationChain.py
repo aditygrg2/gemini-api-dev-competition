@@ -12,7 +12,7 @@ from vertexai.generative_models import (
     Part,
     Tool,
 )
-
+from utility.main import extract_function_call
 commented = ""
 
 SYSTEM_INSTRUCTION = """
@@ -143,27 +143,25 @@ class VerificationChain():
         Phone Number: `{self.phone_number}` \n
 `"""
         self.chat_instance = self.get_model().start_chat(response_validation=False)
-        print(query)
+        print("146", query)
         return self.send_message(query)
 
     def send_message(self, message):
         print(self.chat_instance.history)
         # response = self.chat_instance.send_message(message, safety_settings=self.safety_config)
         response = self.chat_instance.send_message(message)
-        
-        final_response = ""
-        try:
-            function_call = response.candidates[0].content.parts[0].function_call
-        except Exception as e:
-            function_call = None
 
-        print(function_call)
-        print(response)
+        function_call_data = extract_function_call(response.to_dict())
+        function_name = function_call_data['function_name']
+        function_data = function_call_data['function_args']
 
-        if(not function_call):
+        print(function_call_data)
+        print(response.to_dict())
+
+        if(not function_name):
             not_function_text = ""
             try:
-                not_function_text = response.candidates[0].content.parts[0].text
+                not_function_text = response.text
                 ai_reply = self.format_text(not_function_text)
                 return (VerificationChainStatus.IN_PROGRESS, ai_reply)
             except:
@@ -171,8 +169,6 @@ class VerificationChain():
                 return (VerificationChainStatus.NOT_VERIFIED, final_response)
             
         else:
-            function_name = response.candidates[0].content.parts[0].function_call.name
-
             if(function_name == "user_not_verified"):
                 final_response = """I'm sorry, but I am unable to verify the details at this time. Thank you for contacting Amazon!"""
                 return (VerificationChainStatus.NOT_VERIFIED, final_response)
@@ -182,7 +178,7 @@ class VerificationChain():
             elif(function_name == "get_user_data_with_phone_number"):
                 print("156", response)
             
-                phone_number = self.format_text(function_call.args['phone_number'].strip().replace(" ", ""))
+                phone_number = self.format_text(function_data['phone_number'].strip().replace(" ", ""))
                 # Perform a mongo query here, return data, send it to the Gemini. TODO
 
                 if(not phone_number):

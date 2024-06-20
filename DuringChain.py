@@ -7,6 +7,7 @@ from langchain_google_genai import GoogleGenerativeAIEmbeddings
 import google.generativeai as genai
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain.vectorstores import FAISS
+from utility.main import extract_function_call, parse_history
 from vertexai.generative_models import (
     FunctionDeclaration,
     GenerationConfig,
@@ -100,7 +101,9 @@ class DuringChain():
         get_info_about_query = FunctionDeclaration(
             name="get_info_about_query",
             description="""
-            This searches through help docs of the Amazon Pages and finds relevant information about refund policy, cancellation policy and from other help related pages. 
+            This searches through help docs of the Amazon Pages and finds relevant information about - 
+            all policies (refund, cancellation and more)
+            other related help docs
             You can take data from here to understand better about the solutions if not known to you already.
             """,
             parameters={
@@ -171,47 +174,50 @@ class DuringChain():
         return self.validate_response(response)
 
     def validate_response(self, response):
-        print(response, "Line 161 - During Chain")
+        print(response, "Line 176 - During Chain")
         final_response = ""
 
-        try:
-            function_call = response.candidates[0].content.parts[0].function_call
-        except:
-            function_call = None
+        function_call_data = extract_function_call(response.to_dict())
+        function_name = function_call_data['function_name']
+        function_data = function_call_data['function_args']
 
-        print("Function Call:",  function_call)
+        print(function_call_data)
+        print(response.to_dict())
+        
+        print("Function Call:",  function_call_data)
 
-        if (not function_call):
-            ai_reply = self.format_text(
-                response.candidates[0].content.parts[0].text)
+        if (not function_name):
+            try:
+                ai_reply = self.format_text(response.text)
+            except:
+                ai_reply = "There are some problems understanding or processing your text. Please say again! Sorry for the inconvenience caused."
+
             return (DuringChainStatus.IN_PROGRESS_GENERAL, self.format_text(ai_reply))
         else:
-            function_name = response.candidates[0].content.parts[0].function_call.name
-
             if (function_name == "send_to_agent_for_manual_intervention"):
                 final_response = """You will soon receive a call from an agent. Thank you for contacting Amazon! This call can now be terminated."""
                 return (DuringChainStatus.AGENT_TRANSFERRED, final_response)
 
             elif (function_name == "closes_the_call"):
                 try:
-                    feedback = function_call.args[1].fields[0].value[0].string_value
-                    rating = function_call.args[0].fields[0].value[0].string_value
+                    feedback = function_data['feedback_user']
+                    rating = function_data['rating']
                 except:
                     feedback = 'NULL'
                     rating = 3
 
                 print(feedback, rating)
 
-                self.sentiment.analyze_chat_and_save(
-                    "\n".join(self.chat.history), self.phone_number)
-                
+                print(str("\n".join(self.chat.history)))
+
+                self.sentiment.analyze_chat_and_save(parse_history(self.chat), self.phone_number)
                 self.sentiment.analyze_feedback_and_save_ai(feedback, rating, self.phone_number)
 
                 final_response = """Thank you for calling Amazon. Have an amazing day!"""
                 return (DuringChainStatus.TERMINATED, final_response)
 
             elif (function_name == "get_data_of_user"):
-                question = function_call.args['query']
+                question = function_data['query']
 
                 response = self.send_message(
                     Part.from_function_response(
@@ -275,12 +281,12 @@ class DuringChain():
 
             chat = model.start_chat(response_validation=False)
             response = chat.send_message(sol)
-            print(response.candidates[0].content.parts[0].text)
+            print(response.text)
 
             if (not response):
                 return "There is no data available. Please transfer the call to agent."
 
-            return self.format_text(response.candidates[0].content.parts[0].text)
+            return self.format_text(response.text)
         except Exception as e:
             print("get_data_of_user_chain", e)
 

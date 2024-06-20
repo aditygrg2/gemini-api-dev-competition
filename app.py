@@ -3,6 +3,8 @@ from mongoengine import connect
 from dotenv import load_dotenv
 import os
 import re
+from pydub import AudioSegment
+import datetime
 import models.address as Address, models.orders as Order, models.product as Product, models.transactionDetail as Transaction, models.user as User
 from VerificationChain import VerificationChain, VerificationChainStatus
 from DuringChain import DuringChain, DuringChainStatus
@@ -32,6 +34,7 @@ socketio = SocketIO(app,cors_allowed_origins="*")
 
 recognizer = sr.Recognizer()
 AudioSegment.converter = which("ffmpeg")
+files = []
 
 client = connect(host=os.environ['MONGO_URL'])
 db = Database()
@@ -70,24 +73,32 @@ def handle_audio(data):
 
         if(not os.path.exists(f"audios/{phone_number}")):
             os.mkdir(f"audios/{phone_number}")
-        
-        with open(f'audios/{phone_number}/{u}.mp3', 'wb') as audio_file:
-            audio_file.write(audio_data)
 
-        senti = sentiment.analyze_audio_and_save(f'audios/{phone_number}/{u}.mp3', False, phone_number)
+        audio_name_mp3 = f"audios/{phone_number}/{u}.mp3"
+        audio_name_wav = f"audios/{phone_number}/{u}.wav"
+        
+        with open(audio_name_mp3, 'wb') as audio_file:
+            audio_file.write(audio_data)
+            files.append(audio_name_mp3)
+
+        senti = sentiment.analyze_audio_and_save(audio_name_mp3, False, phone_number)
 
         if(senti == SentimentTypes.NEGATIVE):
             if(user_dict[phone_number]['call_status'] == CallStatus.DuringChainStarted):
                 del user_dict[phone_number]
-                reply = """I am sorry to listen that you are frustrated. I am forwarding your call to the agent."""
-                convert_to_audio_and_send(reply, phone_number, u)
+                reply = """I am sorry that you are facing this. I am forwarding your call to the agent for better help."""
+                convert_to_audio_and_send(reply, phone_number)
 
+                handle_termination(phone_number)
+                delete_files_in_folder()
+
+                socketio.emit('finish', "agent_transfer")
                 socketio.emit('disconnect')
                 return
 
-        subprocess.call(['ffmpeg', '-i', f'audios/{phone_number}/{u}.mp3', f'audios/{phone_number}/{u}.wav'])
+        subprocess.call(['ffmpeg', '-i', audio_name_mp3, audio_name_wav])
         
-        with sr.AudioFile(f'audios/{phone_number}/{u}.wav') as source:
+        with sr.AudioFile(audio_name_wav) as source:
             audio = recognizer.record(source)
             text = recognizer.recognize_google(audio)
             print("Human Said", text)
@@ -111,7 +122,7 @@ def handle_audio(data):
                 chat = user_dict[phone_number]['verification_chain'].start_chat()
                 print("124", chat)
                 user_dict[phone_number]['call_status'] = CallStatus.VerificationChainStarted
-                convert_to_audio_and_send(chat[1], phone_number, u)
+                convert_to_audio_and_send(chat[1], phone_number)
                 
             elif(user_dict[phone_number]['call_status'] == CallStatus.VerificationChainStarted):
                 response = user_dict[phone_number]['verification_chain'].send_message(text)
@@ -120,11 +131,13 @@ def handle_audio(data):
                 chain_status = response[0]
 
                 if(chain_status == VerificationChainStatus.NOT_VERIFIED):
-                    convert_to_audio_and_send(response[1], phone_number, u)
+                    convert_to_audio_and_send(response[1], phone_number)
                     user_dict[phone_number]['call_status'] = CallStatus.VerificationChainNotStarted
+                    handle_termination(phone_number)
+                    delete_files_in_folder()
                     
                 elif(chain_status == VerificationChainStatus.IN_PROGRESS):
-                    convert_to_audio_and_send(response[1], phone_number, u)
+                    convert_to_audio_and_send(response[1], phone_number)
                 
                 else:
                     print("During chain started")
@@ -141,24 +154,36 @@ def handle_audio(data):
                 handle_during_chain_conditions(response, phone_number, u)
 
     except sr.UnknownValueError:
-        convert_to_audio_and_send("Can you please repeat? I am unable to understand your query.", phone_number, u)
+        convert_to_audio_and_send("Can you please repeat? I am unable to understand your query.", phone_number)
         print("Google Speech Recognition could not understand audio")
     except sr.RequestError as e:
-        convert_to_audio_and_send("Can you please repeat? I am unable to understand your query.", phone_number, u)
+        convert_to_audio_and_send("Can you please repeat? I am unable to understand your query.", phone_number)
         print(f"Could not request results from Google Speech Recognition service; {e}")
     finally:
-        user_dict[phone_number]['first_time'] = False
+        try:
+            user_dict[phone_number]['first_time'] = False
+        except:
+            pass
 
-def convert_to_audio_and_send(text, phone_number, u):
+
+def convert_to_audio_and_send(text, phone_number):
     print("AI Text", text)
     text = text.replace("*", "")
+    text = text.replace("`", "")
+    text = text.replace("'", "")
+    text = text.replace("/", "")
     tts = gTTS(text)
     audio_output_buffer = BytesIO()
     tts.write_to_fp(audio_output_buffer)
     audio_output_buffer.seek(0)
 
-    audio_path = f"audios/{phone_number}/{u}.mp3"
+    u = uuid4()
 
+    audio_path = f"audios/{phone_number}/{u}.mp3"
+    audio = AudioSegment.from_file(audio_output_buffer, format="mp3")
+    audio.export(audio_path, format="mp3")
+    
+    files.append(audio_path)
     sentiment.analyze_audio_and_save(audio_path, True, phone_number)
 
     emit('receive_audio', audio_output_buffer.getvalue(), binary=True)
@@ -167,11 +192,41 @@ def convert_to_audio_and_send(text, phone_number, u):
 def handle_during_chain_conditions(response, phone_number, u):
     status = response[0]
     reply = response[1]
+    convert_to_audio_and_send(reply, phone_number)
 
     if(status == DuringChainStatus.AGENT_TRANSFERRED or status == DuringChainStatus.TERMINATED):
+        handle_termination(phone_number)
+        delete_files_in_folder()
+        if(status == DuringChainStatus.AGENT_TRANSFERRED):
+            socketio.emit('finish', "agent_transfer")
+        else:
+            socketio.emit('finish', "exit")
+            
         del user_dict[phone_number]
 
-    print(reply, status)
-    convert_to_audio_and_send(reply, phone_number, u)
+def merge_audio_files(files, phone_number):
+    combined = AudioSegment.empty()
 
+    for file_path in files:
+        if file_path.endswith(('.mp3', '.wav', '.ogg', '.flv', '.raw', '.aac', '.wma', '.flac')):
+            audio = AudioSegment.from_file(file_path)
+            combined += audio 
+
+    combined.export(f"merged_audios/{phone_number}-{str(datetime.datetime.now())}.mp3", format="mp3")
+
+def delete_files_in_folder():
+    for file_name in files:
+        try:
+            if os.path.isfile(file_name):
+                os.remove(file_name)
+            else:
+                print(f"{file_name} is not a file.")
+        except Exception as e:
+            print(f"Failed to delete {file_name}. Reason: {e}")
+
+def handle_termination(phone_number):
+    global files
+    merge_audio_files(files, phone_number)
+    files = []
+    
 socketio.run(app, debug=True, host='0.0.0.0', port=8000)

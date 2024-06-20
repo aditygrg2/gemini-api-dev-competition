@@ -1,6 +1,5 @@
 
 class Helper():
-
     def __init__(self) -> None:
         pass
 
@@ -52,3 +51,30 @@ class Helper():
             sentiment_list.append(self.calculate_call_sentiment(call))
 
         return {"recent":recent, "sentiment_list": sentiment_list}
+
+def extract_function_call(response):
+    print(response)
+    function_name = None
+    function_args = {}
+
+    try:
+        for part in response['candidates'][0]['content']['parts']:
+            if 'function_call' in part:
+                function_call = part['function_call']
+                function_name = function_call['name']
+                for key, value in function_call['args'].items():
+                    function_args[key] = value
+                break
+    except:
+        print("Function failed")
+        pass
+    
+    return {"function_name": function_name, "function_args": function_args}
+
+def parse_history(chat):
+    text = ""
+
+    for i in chat.history:
+        text += i.role + " : " + i.text + " \n "
+
+    return text

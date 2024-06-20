@@ -79,6 +79,15 @@ function App() {
       const audioBlob = new Blob([data], { type: 'audio/wav' });
       setReceivedAudio(URL.createObjectURL(audioBlob));
     });
+
+    socket.on('finish', (data) => {
+      if(data === "agent_transfer"){
+        alert('Thank you for calling Amazon! Your call is will be routed to a live agent now.');
+      }
+      else if(data == 'exit'){
+        alert('Thank you for calling us. Please refresh the page to start again!');
+      }
+    });
   }, []);
 
   useEffect(() => {
