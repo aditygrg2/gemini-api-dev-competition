@@ -255,6 +255,7 @@ header_html = """
     .header-title {
         font-size: 42px;
         margin: 0 10px;
+        font-weight:bold;
     }
     .divider {
         height: 60px;
@@ -277,12 +278,50 @@ header_html = """
 </div>
 """
 
+tab_css = """
+<style>
+/* Style the tab container */
+.stTabs [role="tablist"] {
+    display: flex;
+    justify-content: flex-start; /* Align tabs to the left */
+    gap: 10px; /* Space between tabs */
+    border-bottom: 2px solid #232f3f; /* Border at the bottom */
+}
+
+/* Style each tab */
+.stTabs [role="tab"] {
+    padding: 10px 20px;
+    font-size: 24px; /* Make the text larger */
+    font-weight: bold;
+    border-radius: 10px 10px 0 0; /* Rounded top corners */
+    cursor: pointer;
+    color: black; /* White text color */
+    background-color: #fffff; /* Background color */
+    border: 2px solid #232f3f; /* Border color */
+    border-bottom: none; /* Remove the bottom border */
+    transition: none; /* Remove the transition effect */
+}
+
+/* Style the selected tab */
+.stTabs [role="tab"][aria-selected="true"] {
+    background-color: #232f3f; /* Same background color for selected tab */
+    color: white; /* White text color for selected tab */
+    border-color: #ff9900; /* Border color for selected tab */
+    border-bottom: 2px solid #232f3f; /* Border at the bottom */
+}
+
+</style>
+"""
+
+
+
 # Streamlit app
 st.set_page_config(page_title='Streamlit App', page_icon=None, layout='wide', initial_sidebar_state='auto')
 st.markdown(
     header_html,
     unsafe_allow_html=True
 )
+st.markdown(tab_css, unsafe_allow_html=True)
 
 # Create tabs
 tab1, tab2 = st.tabs(["Sentiment Analysis", "Conversational Trackers"])
@@ -295,7 +334,7 @@ with tab1:
         st.markdown(
             """
             <div class="container">
-                <h3>Agent Sentiment Breakdown</h3>
+                <h3 ">Agent Sentiment Breakdown</h3>
             """,
             unsafe_allow_html=True
         )
@@ -457,22 +496,27 @@ with tab1:
     trackers = analysis['tracker_list']
     st.title("Conversational Trackers")
     for tracker in trackers:
+        st.markdown(f"### {tracker['title']}")
+        st.markdown(f"#### Description")
+        st.markdown(f"{tracker['description']}")
+        st.markdown(f"#### Criteria")
+        st.markdown(f"{tracker['criteria']}")
+        st.title("Conversational Trackers")
 
-        tracker_title = tracker['title']
 
-        words_data = tracker['word_count']
+        words_data = get_word_counts_for_tracker(tracker['title'])
 
-        # Create a pie chart
         labels = list(words_data.keys())
         values = list(words_data.values())
         pie_fig = go.Figure(data=[go.Pie(labels=labels, values=values, hole=.3)])
 
+        tracker_name = tracker['title']
+
         pie_fig.update_layout(
-            title=f'Count of Words for {tracker_title}',
+            title=f'Count of Words for {tracker_name}',
             annotations=[dict(text='Words', x=0.5, y=0.5, font_size=20, showarrow=False)]
         )
 
-        # Render the pie chart
         st.plotly_chart(pie_fig)
 
         
