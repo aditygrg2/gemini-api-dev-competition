@@ -18,6 +18,7 @@ function App() {
   const [isAgentGifPlaying, setIsAgentGifPlaying] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState('');
   const [isPhoneNumberValid, setIsPhoneNumberValid] = useState(false);
+  const [isBackendResponseReceived, setIsBackendResponseReceived] = useState(true); // New state variable
   const mediaStream = useRef(null);
   const mediaRecorder = useRef(null);
   const inputRef = useRef();
@@ -26,9 +27,10 @@ function App() {
   const audioRef = useRef(null);
 
   const startRecording = async () => {
-    if (!isPhoneNumberValid) return; // Prevent starting recording if phone number is invalid
+    if (!isPhoneNumberValid || !isBackendResponseReceived) return; // Prevent starting recording if phone number is invalid or backend response is not received
     setRecord(true);
     setIsCustomerGifPlaying(true);
+    setIsBackendResponseReceived(false); // Disable the start button
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       mediaStream.current = stream;
@@ -56,6 +58,7 @@ function App() {
       mediaRecorder.current.start();
     } catch (error) {
       console.error('Error accessing microphone:', error);
+      setIsBackendResponseReceived(true); // Re-enable the start button if there is an error
     }
   };
 
@@ -78,6 +81,7 @@ function App() {
       console.log("We have some data here");
       const audioBlob = new Blob([data], { type: 'audio/wav' });
       setReceivedAudio(URL.createObjectURL(audioBlob));
+      setIsBackendResponseReceived(true); // Re-enable the start button when backend response is received
     });
 
     socket.on('finish', (data) => {
@@ -157,9 +161,9 @@ function App() {
         <button
           onClick={startRecording}
           className={`px-4 py-2 ${
-            isPhoneNumberValid && !record ? 'bg-blue-500 hover:bg-blue-700' : 'bg-gray-400 cursor-not-allowed'
+            isPhoneNumberValid && !record && isBackendResponseReceived ? 'bg-blue-500 hover:bg-blue-700' : 'bg-gray-400 cursor-not-allowed'
           } text-white font-semibold rounded-lg shadow-md transition duration-300`}
-          disabled={!isPhoneNumberValid || record}
+          disabled={!isPhoneNumberValid || record || !isBackendResponseReceived}
         >
           Start
         </button>
@@ -197,3 +201,4 @@ function App() {
 }
 
 export default App;
+  

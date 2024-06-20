@@ -63,16 +63,45 @@ class Helper():
     def calculate_call_sentiment(self, call_data):
         try:
             audio_analysis = self.get_audio_score(call_data['call_sent'])
-            return {"phone_number": call_data['phone_number'], "transcribe": call_data["transcribe"] ,"contact_sentiment":audio_analysis['contact_sentiment'],"agent_sentiment": audio_analysis['agent_sentiment'],"customer_feedback_rating": call_data['contact_feedback']['score'],"customer_feedback_text":call_data['contact_feedback']['text'],"agent_feedback_rating": call_data['agent_feedback']['score'],"agent_feedback_text": call_data['agent_feedback']['text']}
+            len_transcribed = len(call_data.get("transcribe",""))
+            if len_transcribed > 40:
+                call_data["transcribe"] = call_data.get("transcribe","")[0: math.min(len_transcribed,40)] + "..."
+            return {"phone_number": call_data['phone_number'], "transcribe": call_data.get("transcribe","Can't generate transcribe") ,"contact_sentiment":audio_analysis['contact_sentiment'],"agent_sentiment": audio_analysis['agent_sentiment'],"customer_feedback_rating": call_data.get('contact_feedback',dict()).get('score',"not given"),"customer_feedback_text":call_data.get('contact_feedback',dict()).get('text',"not given"),"agent_feedback_rating": call_data.get('agent_feedback',dict()).get('score',"not given"),"agent_feedback_text": call_data.get('agent_feedback',dict()).get('text',"not given")}
         except Exception as e:
             print(e)
 
+    def calculate_tracker_count(self, call_list, trackers_list):
+        ans = []
+        for tr in trackers_list:
+            temp = {}
+            for call in call_list:
+                cur_tracker = call.get("trackers",[])
+                for cur_tracker_cnt in cur_tracker:
+                    if tr['title']== cur_tracker_cnt['title']:
+                        cur_tracker_tokens = cur_tracker_cnt['trackerCount']
+                        for word in tr['words']:
+                            val = cur_tracker_tokens.get(word,0)
+                            temp[word] = temp.get(word,0) + val 
+                        break
+            tr['word_count'] = temp
+            ans.append(tr)
+        return ans
+
+
     def create_analysis(self, call_list):
         recent = self.get_recent_call_analysis(call_list)
+        trackers = trackerColl.find()
+        trck = []
+        for t in trackers:
+            trck.append(t)
         sentiment_list = []
+        trackerList = []
         for call in call_list:
             sentiment_list.append(self.calculate_call_sentiment(call))
-        return {"recent":recent, "sentiment_list": sentiment_list}
+        
+        trackerList = self.calculate_tracker_count(call_list, trck)
+
+        return {"recent": recent, "sentiment_list": sentiment_list,"tracker_list": trackerList}
 
 
 def get_analysis():
@@ -85,6 +114,7 @@ def get_analysis():
         return analysis
     except Exception as e:
         print(e)
+
 
 def get_trackers():
     try:
@@ -225,6 +255,7 @@ header_html = """
     .header-title {
         font-size: 42px;
         margin: 0 10px;
+        font-weight:bold;
     }
     .divider {
         height: 60px;
@@ -247,12 +278,50 @@ header_html = """
 </div>
 """
 
+tab_css = """
+<style>
+/* Style the tab container */
+.stTabs [role="tablist"] {
+    display: flex;
+    justify-content: flex-start; /* Align tabs to the left */
+    gap: 10px; /* Space between tabs */
+    border-bottom: 2px solid #232f3f; /* Border at the bottom */
+}
+
+/* Style each tab */
+.stTabs [role="tab"] {
+    padding: 10px 20px;
+    font-size: 24px; /* Make the text larger */
+    font-weight: bold;
+    border-radius: 10px 10px 0 0; /* Rounded top corners */
+    cursor: pointer;
+    color: black; /* White text color */
+    background-color: #fffff; /* Background color */
+    border: 2px solid #232f3f; /* Border color */
+    border-bottom: none; /* Remove the bottom border */
+    transition: none; /* Remove the transition effect */
+}
+
+/* Style the selected tab */
+.stTabs [role="tab"][aria-selected="true"] {
+    background-color: #232f3f; /* Same background color for selected tab */
+    color: white; /* White text color for selected tab */
+    border-color: #ff9900; /* Border color for selected tab */
+    border-bottom: 2px solid #232f3f; /* Border at the bottom */
+}
+
+</style>
+"""
+
+
+
 # Streamlit app
 st.set_page_config(page_title='Streamlit App', page_icon=None, layout='wide', initial_sidebar_state='auto')
 st.markdown(
     header_html,
     unsafe_allow_html=True
 )
+st.markdown(tab_css, unsafe_allow_html=True)
 
 # Create tabs
 tab1, tab2 = st.tabs(["Sentiment Analysis", "Conversational Trackers"])
@@ -265,7 +334,7 @@ with tab1:
         st.markdown(
             """
             <div class="container">
-                <h3>Agent Sentiment Breakdown</h3>
+                <h3 ">Agent Sentiment Breakdown</h3>
             """,
             unsafe_allow_html=True
         )
@@ -348,12 +417,11 @@ with tab1:
     def generate_table_html(data_df):
         rows = []
         for row in data_df:
-            print(row['contact_sentiment'])
             contact_sentiment_class = {
                 "Neutral sentiment": "contact-sentiment-neutral",
                 "Positive sentiment": "contact-sentiment-positive",
                 "Negative sentiment": "contact-sentiment-negative"
-            }.get(row['contact_sentiment']['text'], "contact-sentiment-neutral")
+            }.get(row.get('contact_sentiment',dict()).get('text',"Neutral sentiment"), "contact-sentiment-neutral")
 
             agent_sentiment_class = "agent-sentiment-neutral"
 
@@ -385,7 +453,7 @@ with tab1:
                 </tr>
             </thead>
             <tbody>
-               {''.join(rows)}
+            {''.join(rows)}
             </tbody>
         </table>
         """
@@ -415,7 +483,7 @@ with tab1:
                 </tr>
             </thead>
             <tbody>
-               {''.join(rows)}
+            {''.join(rows)}
             </tbody>
         </table>
         """
@@ -425,6 +493,27 @@ with tab1:
     st.markdown(table_css, unsafe_allow_html=True)
     st.markdown(table_html, unsafe_allow_html=True)
 
+    trackers = analysis['tracker_list']
+    st.title("Conversational Trackers")
+    for tracker in trackers:
+        st.markdown(f"### {tracker['title']}")
+
+
+        words_data = tracker['word_count']
+        labels = list(words_data.keys())
+        values = list(words_data.values())
+        pie_fig = go.Figure(data=[go.Pie(labels=labels, values=values, hole=.3)])
+
+        tracker_name = tracker['title']
+
+        pie_fig.update_layout(
+            title=f'Count of Words for {tracker_name}',
+            annotations=[dict(text='Words', x=0.5, y=0.5, font_size=20, showarrow=False)]
+        )
+
+        st.plotly_chart(pie_fig)
+
+        
 with tab2:
     st.title("Conversational Trackers")
 
