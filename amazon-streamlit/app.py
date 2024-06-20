@@ -67,12 +67,39 @@ class Helper():
         except Exception as e:
             print(e)
 
+    def calculate_tracker_count(self, call_list, trackers_list):
+        ans = []
+        for tr in trackers_list:
+            temp = {}
+            for call in call_list:
+                cur_tracker = call['trackers']
+                for cur_tracker_cnt in cur_tracker:
+                    if tr['title']== cur_tracker_cnt['title']:
+                        cur_tracker_title = cur_tracker_cnt['title']
+                        cur_tracker_tokens = cur_tracker_cnt['trackerCount']
+                        for word in tr['words']:
+                            val = cur_tracker_tokens.get(word,0)
+                            temp[word] = temp.get(word,0) + val 
+                        break
+            tr['word_count'] = temp
+            ans.append(tr)
+        return ans
+
+
     def create_analysis(self, call_list):
         recent = self.get_recent_call_analysis(call_list)
+        trackers = trackerColl.find()
+        trck = []
+        for t in trackers:
+            trck.append(t)
         sentiment_list = []
+        trackerList = []
         for call in call_list:
             sentiment_list.append(self.calculate_call_sentiment(call))
-        return {"recent":recent, "sentiment_list": sentiment_list}
+        
+        trackerList = self.calculate_tracker_count(call_list, trck)
+
+        return {"recent": recent, "sentiment_list": sentiment_list,"tracker_list": trackerList}
 
 
 def get_analysis():
@@ -436,14 +463,13 @@ with tab1:
     st.markdown(table_css, unsafe_allow_html=True)
     st.markdown(table_html, unsafe_allow_html=True)
 
-    trackers = get_trackers()
+    trackers = analysis['tracker_list']
+    st.title("Conversational Trackers")
     for tracker in trackers:
-        st.title("Conversational Trackers")
 
-        tracker_title = "Amazon Great Indian Sale"  # Replace with actual tracker title
+        tracker_title = tracker['title']
 
-        # Fetch word counts for the tracker
-        words_data = get_word_counts_for_tracker(tracker_title)
+        words_data = tracker['word_count']
 
         # Create a pie chart
         labels = list(words_data.keys())
