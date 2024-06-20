@@ -6,6 +6,7 @@ import gifAnimatedCustomer from './customer.gif';
 import gifAnimatedParallel from './customer_headphone.gif'; 
 import io from 'socket.io-client';
 import { ReactMic } from 'react-mic';
+import { ClipLoader } from 'react-spinners'; // Import the loading spinner
 import amazon from './images.png';
 
 const socket = io('http://localhost:8000'); // Update the port as per your backend
@@ -19,6 +20,7 @@ function App() {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [isPhoneNumberValid, setIsPhoneNumberValid] = useState(false);
   const [isBackendResponseReceived, setIsBackendResponseReceived] = useState(true); // New state variable
+  const [isWaitingForResponse, setIsWaitingForResponse] = useState(false); // New state variable
   const mediaStream = useRef(null);
   const mediaRecorder = useRef(null);
   const inputRef = useRef();
@@ -65,6 +67,7 @@ function App() {
   const stopRecording = () => {
     setRecord(false);
     setIsCustomerGifPlaying(false);
+    setIsWaitingForResponse(true); // Show the loading spinner
 
     if (mediaRecorder.current && mediaRecorder.current.state === 'recording') {
       mediaRecorder.current.stop();
@@ -82,6 +85,7 @@ function App() {
       const audioBlob = new Blob([data], { type: 'audio/wav' });
       setReceivedAudio(URL.createObjectURL(audioBlob));
       setIsBackendResponseReceived(true); // Re-enable the start button when backend response is received
+      setIsWaitingForResponse(false); // Hide the loading spinner
     });
 
     socket.on('finish', (data) => {
@@ -116,7 +120,10 @@ function App() {
   };
 
   return (
-    <div className="flex flex-col justify-between items-center min-h-screen bg-gradient-to-r from-gray-100 via-gray-200 to-gray-300 p-4">
+    <div className="flex flex-col justify-between items-center min-h-screen bg-white p-4">
+       <script>
+    document.body.style.zoom = "80%";
+  </script>
       <header className="w-full flex justify-center items-center p-4 bg-gray-800 text-white mb-8 rounded-lg shadow-md">
         <div className="flex items-center space-x-4">
           <img src={amazon} alt="Amazon Logo" className="h-16 w-24" />
@@ -124,6 +131,20 @@ function App() {
           <h1 className="text-2xl font-bold">Customer Service Interface</h1>
         </div>
       </header>
+      <div class="bg-white shadow-lg rounded-lg p-8">
+        <h1 class="text-2xl font-bold text-gray-800 mb-4">Amazon HackOn 2024 Submission Project</h1>
+        <p class="text-gray-700 mb-6">Welcome to the mock call frontend. Here, you will simulate a call to the agent for demonstration purposes.</p>
+
+        <h2 class="text-xl font-semibold text-gray-800 mb-2">Instructions to use:</h2>
+        <ol class="list-decimal list-inside text-gray-700 mb-6">
+          <li class="mb-2">Enter your mobile number from which you will be calling the agent.</li>
+          <li class="mb-2">Before recording yourself, tap on the start button. As soon as you have finished recording, tap on the stop button.</li>
+          <li class="mb-2">The calls are generated and sent to the frontend via API. The real call system will handle this cellularly.</li>
+          <li>Any transfer-related or call-ending updates will be alerted.</li>
+        </ol>
+
+        <p class="text-gray-700">Thank you.</p>
+      </div>
       <div className="flex justify-around items-center w-full max-w-screen-lg mb-8 flex-grow">
         <div className="flex flex-col items-center">
           <GifPlayer
@@ -132,7 +153,7 @@ function App() {
             isPlaying={isCustomerGifPlaying}
             label=""
           />
-          <div className="mt-4 px-4 py-2 bg-blue-500 text-white font-bold text-xl rounded-lg shadow-md">
+          <div className="mt-4 px-4 py-2 bg-[#232f3f] text-white border-2 border-solid border-[#ff9900] font-bold text-xl rounded-lg shadow-md">
             Customer
           </div>
         </div>
@@ -144,7 +165,7 @@ function App() {
             isPlaying={isAgentGifPlaying}
             label=""
           />
-          <div className="mt-4 px-4 py-2 bg-green-500 text-white font-bold text-xl rounded-lg shadow-md">
+          <div className="mt-4 px-4 py-2 bg-[#232f3f] text-white border-2 border-solid border-[#ff9900] font-bold text-xl rounded-lg shadow-md">
             Agent
           </div>
         </div>
@@ -161,7 +182,7 @@ function App() {
         <button
           onClick={startRecording}
           className={`px-4 py-2 ${
-            isPhoneNumberValid && !record && isBackendResponseReceived ? 'bg-blue-500 hover:bg-blue-700' : 'bg-gray-400 cursor-not-allowed'
+            isPhoneNumberValid && !record && isBackendResponseReceived ? 'bg-[#131921] hover:bg-blue-700' : 'bg-gray-400 cursor-not-allowed'
           } text-white font-semibold rounded-lg shadow-md transition duration-300`}
           disabled={!isPhoneNumberValid || record || !isBackendResponseReceived}
         >
@@ -179,12 +200,17 @@ function App() {
           onClick={stopRecording}
           disabled={!isPhoneNumberValid || !record}
           className={`px-4 py-2 ${
-            isPhoneNumberValid && record ? 'bg-blue-500 hover:bg-blue-700' : 'bg-gray-400 cursor-not-allowed'
+            isPhoneNumberValid && record ? 'bg-[#131921] hover:bg-blue-700' : 'bg-gray-400 cursor-not-allowed'
           } text-white font-semibold rounded-lg shadow-md transition duration-300`}         
         >
           Stop
         </button>
       </div>
+      {isWaitingForResponse && (
+        <div className="mt-8">
+          <ClipLoader size={50} color={"#123abc"} loading={isWaitingForResponse} />
+        </div>
+      )}
       {receivedAudio && (
         <div className="mt-8">
           <audio controls autoPlay className="" key={receivedAudio} ref={audioRef}>
@@ -201,4 +227,3 @@ function App() {
 }
 
 export default App;
-  
