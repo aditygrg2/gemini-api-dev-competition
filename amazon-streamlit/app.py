@@ -114,7 +114,7 @@ contact_sentiment = {
 def create_sentiment_bar(sentiment, title):
     labels = ['Positive', 'Neutral', 'Negative']
     values = [sentiment['positive'], sentiment['neutral'], sentiment['negative']]
-    colors = ['green', 'yellow', 'red']
+    colors = ['#ABB9A2', '#F9E076', '#AB6465']
 
     fig = go.Figure()
 
@@ -178,15 +178,15 @@ def create_custom_legend():
     legend_html = """
     <div style="display: flex; justify-content: space-around; margin-top: 10px; ">
         <div style="display: flex; align-items: center;">
-            <div style="width: 15px; height: 15px; border-radius: 50%; background-color: green; margin-right: 5px;"></div>
+            <div style="width: 15px; height: 15px; border-radius: 50%; background-color: #ABB9A2; margin-right: 5px;"></div>
             <span>Positive</span>
         </div>
         <div style="display: flex; align-items: center;">
-            <div style="width: 15px; height: 15px; border-radius: 50%; background-color: yellow; margin-right: 5px;"></div>
+            <div style="width: 15px; height: 15px; border-radius: 50%; background-color: #F9E076; margin-right: 5px;"></div>
             <span>Neutral</span>
         </div>
         <div style="display: flex; align-items: center;">
-            <div style="width: 15px; height: 15px; border-radius: 50%; background-color: red; margin-right: 5px;"></div>
+            <div style="width: 15px; height: 15px; border-radius: 50%; background-color: #AB6465; margin-right: 5px;"></div>
             <span>Negative</span>
         </div>
     </div>
@@ -242,7 +242,7 @@ header_html = """
     <div class="header-content">
         <img src="https://www.hatchwise.com/wp-content/uploads/2022/05/amazon-logo-1024x683.png" class="header-logo">
         <div class="divider"></div>
-        <div class="header-title">Sentiment Analysis Results</div>
+        <div class="header-title">Call Analysis Dashboard</div>
     </div>
 </div>
 """
