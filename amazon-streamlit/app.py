@@ -86,6 +86,17 @@ def get_analysis():
     except Exception as e:
         print(e)
 
+def get_word_counts_for_tracker(tracker_title):
+# Hardcoded word counts for demonstration
+    hardcoded_data = {
+        "Amazon Great Indian Sale": {"sale": 6, "discount": 3, "offer": 2, "deal": 4},
+        "Holiday Season Sale": {"holiday": 5, "gift": 7, "sale": 4, "discount": 6},
+        "Back to School": {"school": 8, "backpack": 3, "uniform": 2, "supplies": 5}
+    }
+
+    return hardcoded_data.get(tracker_title,{})
+
+
 def get_trackers():
     try:
         trackers = trackerColl.find()
@@ -385,7 +396,7 @@ with tab1:
                 </tr>
             </thead>
             <tbody>
-               {''.join(rows)}
+            {''.join(rows)}
             </tbody>
         </table>
         """
@@ -415,7 +426,7 @@ with tab1:
                 </tr>
             </thead>
             <tbody>
-               {''.join(rows)}
+            {''.join(rows)}
             </tbody>
         </table>
         """
@@ -425,6 +436,29 @@ with tab1:
     st.markdown(table_css, unsafe_allow_html=True)
     st.markdown(table_html, unsafe_allow_html=True)
 
+    trackers = get_trackers()
+    for tracker in trackers:
+        st.title("Conversational Trackers")
+
+        tracker_title = "Amazon Great Indian Sale"  # Replace with actual tracker title
+
+        # Fetch word counts for the tracker
+        words_data = get_word_counts_for_tracker(tracker_title)
+
+        # Create a pie chart
+        labels = list(words_data.keys())
+        values = list(words_data.values())
+        pie_fig = go.Figure(data=[go.Pie(labels=labels, values=values, hole=.3)])
+
+        pie_fig.update_layout(
+            title=f'Count of Words for {tracker_title}',
+            annotations=[dict(text='Words', x=0.5, y=0.5, font_size=20, showarrow=False)]
+        )
+
+        # Render the pie chart
+        st.plotly_chart(pie_fig)
+
+        
 with tab2:
     st.title("Conversational Trackers")
 
