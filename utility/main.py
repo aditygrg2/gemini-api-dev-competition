@@ -75,6 +75,9 @@ def parse_history(chat):
     text = ""
 
     for i in chat.history:
-        text += i.role + " : " + i.text + " \n "
+        try:
+            text += i.role + " : " + i.text + " \n "
+        except:
+            pass
 
     return text

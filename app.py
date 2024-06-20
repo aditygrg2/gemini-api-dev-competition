@@ -90,7 +90,6 @@ def handle_audio(data):
                 convert_to_audio_and_send(reply, phone_number)
 
                 handle_termination(phone_number)
-                delete_files_in_folder()
 
                 socketio.emit('finish', "agent_transfer")
                 socketio.emit('disconnect')
@@ -134,7 +133,6 @@ def handle_audio(data):
                     convert_to_audio_and_send(response[1], phone_number)
                     user_dict[phone_number]['call_status'] = CallStatus.VerificationChainNotStarted
                     handle_termination(phone_number)
-                    delete_files_in_folder()
                     
                 elif(chain_status == VerificationChainStatus.IN_PROGRESS):
                     convert_to_audio_and_send(response[1], phone_number)
@@ -196,7 +194,6 @@ def handle_during_chain_conditions(response, phone_number, u):
 
     if(status == DuringChainStatus.AGENT_TRANSFERRED or status == DuringChainStatus.TERMINATED):
         handle_termination(phone_number)
-        delete_files_in_folder()
         if(status == DuringChainStatus.AGENT_TRANSFERRED):
             socketio.emit('finish', "agent_transfer")
         else:
@@ -215,6 +212,7 @@ def merge_audio_files(files, phone_number):
     combined.export(f"merged_audios/{phone_number}-{str(datetime.datetime.now())}.mp3", format="mp3")
 
 def delete_files_in_folder():
+    global files
     for file_name in files:
         try:
             if os.path.isfile(file_name):
@@ -224,9 +222,11 @@ def delete_files_in_folder():
         except Exception as e:
             print(f"Failed to delete {file_name}. Reason: {e}")
 
+    files.clear()
+
 def handle_termination(phone_number):
     global files
     merge_audio_files(files, phone_number)
-    files = []
+    delete_files_in_folder()
     
 socketio.run(app, debug=True, host='0.0.0.0', port=8000)

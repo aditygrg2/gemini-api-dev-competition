@@ -208,8 +208,6 @@ class DuringChain():
 
                 print(feedback, rating)
 
-                print(str("\n".join(self.chat.history)))
-
                 self.sentiment.analyze_chat_and_save(parse_history(self.chat), self.phone_number)
                 self.sentiment.analyze_feedback_and_save_ai(feedback, rating, self.phone_number)
 
@@ -250,7 +248,12 @@ class DuringChain():
     def send_message(self, input):
         print(self.chat.history)
         print(input)
-        response = self.chat.send_message(input)
+        try:
+            response = self.chat.send_message(input)
+        except:
+            ai_reply = "There are some problems understanding or processing your text. Please say again! Sorry for the inconvenience caused."
+            return (DuringChainStatus.IN_PROGRESS_GENERAL, ai_reply)
+
         return self.validate_response(response)
 
     def get_data_of_user_chain(self, question):
