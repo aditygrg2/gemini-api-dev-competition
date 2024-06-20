@@ -497,15 +497,9 @@ with tab1:
     st.title("Conversational Trackers")
     for tracker in trackers:
         st.markdown(f"### {tracker['title']}")
-        st.markdown(f"#### Description")
-        st.markdown(f"{tracker['description']}")
-        st.markdown(f"#### Criteria")
-        st.markdown(f"{tracker['criteria']}")
-        st.title("Conversational Trackers")
 
 
-        words_data = get_word_counts_for_tracker(tracker['title'])
-
+        words_data = tracker['word_count']
         labels = list(words_data.keys())
         values = list(words_data.values())
         pie_fig = go.Figure(data=[go.Pie(labels=labels, values=values, hole=.3)])
