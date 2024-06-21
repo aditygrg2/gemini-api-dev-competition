@@ -26,21 +26,21 @@ Build a next-generation multi-lingual virtual customer service solution powered 
 - **FAISS Embeddings:** For handling text embeddings efficiently and quick querying
 - **AWS Services:** For hosting and scaling the application. (To be implemented)
 
-### Audio Demos with Different Scenarios
+## Audio Demos with Different Scenarios
 
-#### Good Case Complete Call
+### Good Case Complete Call
 
 - [Audio Link](sample-audios/
 
 This call is a sample of a completely successful good case where all conversations are smooth. There are no mistakes on the client side and hopefully everything goes well.
 
-#### Call with an angry/frustrated customer
+### Call with an angry/frustrated customer
 
 - [Audio Link](sample-audios/
 
 Here, the customer is angry, as soon as the model gets to know this, the call is directly transferred to agent.
 
-#### Crucial Operations only handled by real agent
+### Crucial Operations only handled by real agent
 
 - [Audio Link](sample-audios/6Successful_Termination.mp3)
 
@@ -104,22 +104,22 @@ This JSON was fetched by the model from DB while this call happened.
 }
 ```
 
-#### Model failed to think the solution and transfers the call to agent
+### Model failed to think the solution and transfers the call to agent
 
 - [Audio Link](sample-audios/3Failed_And_Transferred.mp3)
 
 Not everytime model is able to provide the solution, in that case the call is automatically transferred to agent, to not hamper user experience.
 
-#### Multilingual? Yes! A hindi customer with not providing correct information.
+### Multilingual? Yes! A hindi customer with not providing correct information.
 
 - [Audio Link](sample-audios/4Multilingual_Incorrect_Pincode.mp3)
 
 Here, the user does not provide the correct pin code. The verification of the customer is necessary so that the agent knows that he is talking to the correct person.
 
-#### Call Fallback
+### Call Fallback
 
 - [Audio Link](sample-audios/5Fallback_Audio.mp3)
 
 If there is a network error, or anything unexpected happens. Fallback happens accordingly.
 
-#### 
+### 
