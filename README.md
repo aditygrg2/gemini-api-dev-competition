@@ -48,7 +48,8 @@ A crucial query (for example a refund or replace request) which is risky to auto
 
 This JSON was fetched by the model from DB while this call happened.
 
-```[{
+```
+[{
   "phone_number": "8630111400",
   "name": "Aditya Garg",
   "town_city": "Nanakmatta",
