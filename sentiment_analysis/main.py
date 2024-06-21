@@ -34,14 +34,24 @@ class SentimentAnalysis():
         """
         Splits the audio into chunks of `chunk_size` samples (default: 15 seconds).
         """
-        return [audio[i:i + chunk_size] for i in range(0, len(audio), chunk_size)]
+        length = len(audio)
+        last_chunk_size = length % chunk_size
+        pop_last = False
+        if last_chunk_size < 15*16000:
+            pop_last = True
+
+        ans = [audio[i:i + chunk_size] for i in range(0, length, chunk_size)]
+        if pop_last:
+            ans.pop()
+        return ans
 
     def analyze_chunks(self, chunks):
         """
         Analyzes each chunk and returns the sentiment labels.
         """
-        labels = []
-        for chunk in chunks:
+        labels = None
+        if len(chunks) > 0:
+            chunk = chunks.pop()
             inputs = self.feature_extractor([chunk], sampling_rate=16000, padding=True, return_tensors="pt")
             logits = self.model(**inputs).logits
             predicted_ids = torch.argmax(logits, dim=-1)
@@ -54,7 +64,10 @@ class SentimentAnalysis():
             audio = self.map_to_array(file_path)
             chunks = self.split_audio(audio)
             labels = self.analyze_chunks(chunks)
-            return labels.pop()
+            if labels is None:
+                return "neu"
+
+            return labels
         except Exception as e:
             print(e)
 
