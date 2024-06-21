@@ -23,10 +23,13 @@ class Database():
         return self.userCollection.find_one({"phone_number": phone_number}, projection)
     
     def get_user_data_for_verification(self, phone_number):
+        print(phone_number, "queried")
         fields = ['phone_number', 'name', 'town_city', 'state', 'pincode']
         projection = {field: 1 for field in fields}
         projection['_id'] = 0
-        return self.userCollection.find_one({"phone_number": phone_number}, projection)
+        data = self.userCollection.find_one({"phone_number": phone_number}, projection)
+        print(data)
+        return data
 
     def insert_audio_analysis(self, phone_number, data):
         # {

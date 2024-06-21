@@ -12,8 +12,10 @@ from vertexai.generative_models import (
     Part,
     Tool,
 )
+from database.main import Database
 from utility.main import extract_function_call
 commented = ""
+db = Database()
 
 SYSTEM_INSTRUCTION = """
 You are an Amazon Customer Support Agent and you are compassionate and assuring to help your user always!
@@ -147,7 +149,7 @@ class VerificationChain():
         return self.send_message(query)
 
     def send_message(self, message):
-        print(self.chat_instance.history)
+        print("Input to verification's chain send message", message)
         # response = self.chat_instance.send_message(message, safety_settings=self.safety_config)
         response = self.chat_instance.send_message(message)
 
@@ -179,16 +181,18 @@ class VerificationChain():
                 print("156", response)
             
                 phone_number = self.format_text(function_data['phone_number'].strip().replace(" ", ""))
-                # Perform a mongo query here, return data, send it to the Gemini. TODO
 
                 if(not phone_number):
                     phone_number = str(self.phone_number)
+
+                print("193", self.user_data)
+                self.user_data = str(db.get_user_data_for_verification(phone_number))
 
                 response = self.send_message(
                     Part.from_function_response(
                         name=function_name,
                         response={
-                            "content": self.user_data,
+                            "content": self.user_data
                         },
                     ),
                 )

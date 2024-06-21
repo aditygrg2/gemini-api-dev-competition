@@ -99,6 +99,7 @@ class SentimentAnalysis():
         return {"title":title,"trackerCount":count}
 
     def analyze_chat_and_save(self, chat_history, phoneNumber):
+        print("***ANALYSE***", chat_history)
         try:
             tracker_analysis = self.analyze_chat(chat_history)
             self.db.insert_tracker_analysis(phoneNumber, tracker_analysis, chat_history)

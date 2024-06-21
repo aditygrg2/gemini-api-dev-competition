@@ -64,6 +64,7 @@ def handle_audio(data):
                 "verification_chain": None,
                 "during_chain": None,
                 "user_query": "",
+                'user_data': str(db.get_user_data_for_verification(phone_number))
             }
 
             user_dict[phone_number] = phone_dict
@@ -102,8 +103,6 @@ def handle_audio(data):
             text = recognizer.recognize_google(audio)
             print("Human Said", text)
 
-            user_data = str(db.get_user_data_for_verification(phone_number))
-            print(user_data)
             # user_data = """
             #     "name": "Raj Patel",
             #     "phone_number": "9324899237"
@@ -113,13 +112,14 @@ def handle_audio(data):
             # """
 
             print(user_dict)
-
+            user_data = user_dict[phone_number]['user_data']
+            
             if(user_dict[phone_number]['call_status'] == CallStatus.VerificationChainNotStarted):
                 user_dict[phone_number]['user_query'] = text
                 user_dict[phone_number]['verification_chain'] = VerificationChain(user_data=user_data, user_query=text, phone_number=phone_number)
                 print("verification chain started")
                 chat = user_dict[phone_number]['verification_chain'].start_chat()
-                print("124", chat)
+                print("121", chat)
                 user_dict[phone_number]['call_status'] = CallStatus.VerificationChainStarted
                 convert_to_audio_and_send(chat[1], phone_number)
                 
@@ -133,6 +133,8 @@ def handle_audio(data):
                     convert_to_audio_and_send(response[1], phone_number)
                     user_dict[phone_number]['call_status'] = CallStatus.VerificationChainNotStarted
                     handle_termination(phone_number)
+                    socketio.emit('finish', "exit")
+                    return
                     
                 elif(chain_status == VerificationChainStatus.IN_PROGRESS):
                     convert_to_audio_and_send(response[1], phone_number)
@@ -204,6 +206,8 @@ def handle_during_chain_conditions(response, phone_number, u):
 def merge_audio_files(files, phone_number):
     combined = AudioSegment.empty()
 
+    print(files, phone_number)
+
     for file_path in files:
         if file_path.endswith(('.mp3', '.wav', '.ogg', '.flv', '.raw', '.aac', '.wma', '.flac')):
             audio = AudioSegment.from_file(file_path)
@@ -224,9 +228,11 @@ def delete_files_in_folder(phone_number):
                 os.rmdir(dir_path)
         os.rmdir(path)
 
+
 def handle_termination(phone_number):
     global files
     merge_audio_files(files, phone_number)
     delete_files_in_folder(phone_number)
+    files.clear()
     
 socketio.run(app, debug=True, host='0.0.0.0', port=8000)

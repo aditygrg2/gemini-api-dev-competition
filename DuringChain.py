@@ -189,7 +189,8 @@ class DuringChain():
         if (not function_name):
             try:
                 ai_reply = self.format_text(response.text)
-            except:
+            except Exception as e:
+                print(193, e)
                 ai_reply = "There are some problems understanding or processing your text. Please say again! Sorry for the inconvenience caused. If you would like to transfer the call to agent, please let me know."
 
             return (DuringChainStatus.IN_PROGRESS_GENERAL, self.format_text(ai_reply))
@@ -202,7 +203,8 @@ class DuringChain():
                 try:
                     feedback = function_data['feedback_user']
                     rating = function_data['rating']
-                except:
+                except Exception as e:
+                    print("206", e)
                     feedback = 'NULL'
                     rating = 3
 
@@ -243,20 +245,25 @@ class DuringChain():
                 return (DuringChainStatus.IN_PROGRESS_RETRIEVAL, self.format_text(response[1]))
 
             else:
+                self.sentiment.analyze_chat_and_save(parse_history(self.chat), self.phone_number)
+                self.sentiment.analyze_feedback_and_save_ai("NULL", 3, self.phone_number)
                 return (DuringChainStatus.AGENT_TRANSFERRED, """You will soon receive a call from an agent. Thank you for contacting Amazon! This call can now be terminated.""")
 
     def send_message(self, input):
-        print(self.chat.history)
-        print(input)
+        print(input, "to during chain")
         try:
             response = self.chat.send_message(input)
-        except:
+        except Exception as e:
+            print(254, e)
             ai_reply = "There are some problems understanding or processing your text. Please say again! Sorry for the inconvenience caused. If you would like to transfer the call to agent, please let me know."
             return (DuringChainStatus.IN_PROGRESS_GENERAL, ai_reply)
 
         return self.validate_response(response)
 
     def get_data_of_user_chain(self, question):
+        if(self.user_data == "None"):
+            return "To access your orders, you need to call us using your registered Amazon Account mobile number."
+
         print("Starting get_data_of_user_chain")
         try:
             template = """
@@ -291,7 +298,7 @@ class DuringChain():
 
             return self.format_text(response.text)
         except Exception as e:
-            print("get_data_of_user_chain", e)
+            print("298", e)
 
     def get_info_about_query(self, user_question):
         model = ChatGoogleGenerativeAI(

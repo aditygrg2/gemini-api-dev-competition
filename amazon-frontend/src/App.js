@@ -90,7 +90,7 @@ function App() {
 
     socket.on('finish', (data) => {
       if(data === "agent_transfer"){
-        alert('Thank you for calling Amazon! Your call is will be routed to a live agent now.');
+        alert('Thank you for calling Amazon! Your call will be routed to a live agent now.');
       }
       else if(data == 'exit'){
         alert('Thank you for calling us. Please refresh the page to start again!');
