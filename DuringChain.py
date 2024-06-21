@@ -30,7 +30,7 @@ class DuringChainStatus(Enum):
 
 
 SYSTEM_INSTRUCTION = """
-    Your name is Radhika from Amazon Customer Support Agent Team.
+    Your name is Radha from Amazon Customer Support Agent Team.
 
     You are on a call so do not keep the customer waiting and give answers to every question. Reply shorter answers.
     
