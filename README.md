@@ -32,24 +32,24 @@ Build a next-generation multi-lingual virtual customer service solution powered 
 
 - [Audio Link](sample-audios/
 
-This call is a sample of a completely successful good case where all conversations are smooth. There are no mistakes on the client side and hopefully everything goes well.
+This call is a sample of a completely successful good case where all conversations are smooth. There are no mistakes on the client side and hopefully, everything goes well.
 
 ### Call with an angry/frustrated customer
 
 - [Audio Link](sample-audios/
 
-Here, the customer is angry, as soon as the model gets to know this, the call is directly transferred to agent.
+Here, the customer is angry, and as soon as the model gets to know this, the call is directly transferred to an agent.
 
-### Crucial Operations only handled by real agent
+### Crucial Operations are only handled by a real agent
 
 - [Audio Link](sample-audios/6Successful_Termination.mp3)
 
-A crucial query (for example a refund or replace request) which is risky to automate, will be transferred to the agent directly. (We assume here that return/replacements are crucial and should not be handled by model directly, this can be anything which can be configured beyond this prototype)
+A crucial query (for example a refund or replacement request) which is risky to automate, will be transferred to the agent directly. (We assume here that return/replacements are crucial and should not be handled by the model directly, this can be anything that can be configured beyond this prototype)
 
 This JSON was fetched by the model from DB while this call happened.
 
 ```
-[{
+{
   "phone_number": "8630111400",
   "name": "Aditya Garg",
   "town_city": "Nanakmatta",
@@ -98,29 +98,29 @@ This JSON was fetched by the model from DB while this call happened.
         "$date": "2024-06-18T17:20:12.987Z"
       },
       "estimated_delivery_time": "19/06/24 , by 9 PM",
-      "last_location_update": "Panipat , Haryana"
+      "last_location_update": "Panipat, Haryana"
     }
   ],
   "subscription_status": false
 }
 ```
 
-### Model failed to think the solution and transfers the call to agent
+### Model failed to think of a solution and transferred the call to an agent
 
 - [Audio Link](sample-audios/3Failed_And_Transferred.mp3)
 
-Not everytime model is able to provide the solution, in that case the call is automatically transferred to agent, to not hamper user experience.
+Not every time the model can provide the solution, in that case, the call is automatically transferred to the agent, to not hamper the user experience.
 
-### Multilingual? Yes! A hindi customer with not providing correct information.
+### Multilingual? Yes! A Hindi customer with not providing correct information.
 
 - [Audio Link](sample-audios/4Multilingual_Incorrect_Pincode.mp3)
 
-Here, the user does not provide the correct pin code. The verification of the customer is necessary so that the agent knows that he is talking to the correct person.
+Here, the user does not provide the correct PIN code. The verification of the customer is necessary so that the agent knows that he is talking to the correct person.
 
 ### Call Fallback
 
 - [Audio Link](sample-audios/5Fallback_Audio.mp3)
 
-If there is a network error, or anything unexpected happens. Fallback happens accordingly.
+If there is a network error or anything unexpected happens. Fallback happens accordingly.
 
 ### 
