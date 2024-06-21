@@ -106,6 +106,7 @@ class SentimentAnalysis():
         tracker = self.db.get_trackers()
         words = tracker['words']
         title = tracker['title']
+        chat_history = chat_history.lower()
         count = dict()
         for word in words:
             count[word] = chat_history.count(word)
