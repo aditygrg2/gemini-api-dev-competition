@@ -232,7 +232,7 @@ class DuringChain():
 
                 return (DuringChainStatus.IN_PROGRESS_USER_QUERY, self.format_text(response[1]))
 
-            elif (function_name == "get_answers_to_general_help"):
+            elif (function_name == "get_info_about_query"):
                 response = self.send_message(
                     Part.from_function_response(
                         name=function_name,
@@ -301,6 +301,7 @@ class DuringChain():
             print("298", e)
 
     def get_info_about_query(self, user_question):
+        print("Get Info About Query")
         model = ChatGoogleGenerativeAI(
             model="gemini-pro",
             client=genai,
@@ -330,4 +331,5 @@ class DuringChain():
             return ans_contexts
 
         data = filter_contexts(user_question)
+        print(data)
         return "".join(data)
