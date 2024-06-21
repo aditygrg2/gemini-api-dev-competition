@@ -133,7 +133,7 @@ function App() {
       </header>
       <div class="bg-white shadow-lg rounded-lg p-8">
         <h1 class="text-2xl font-bold text-gray-800 mb-4">Amazon HackOn 2024 Submission Project</h1>
-        <p class="text-gray-700 mb-6">Welcome to the mock call frontend. Here, you will simulate a call to the agent for demonstration purposes.</p>
+        <p class="text-gray-700 mb-6">Welcome to the mock call frontend. Here, you will simulate a call to the agent for demonstration purposes. It will be used for fetching out data from Amazon Records.</p>
 
         <h2 class="text-xl font-semibold text-gray-800 mb-2">Instructions to use:</h2>
         <ol class="list-decimal list-inside text-gray-700 mb-6">
@@ -142,8 +142,6 @@ function App() {
           <li class="mb-2">The calls are generated and sent to the frontend via API. The real call system will handle this cellularly.</li>
           <li>Any transfer-related or call-ending updates will be alerted.</li>
         </ol>
-
-        <p class="text-gray-700">Thank you.</p>
       </div>
       <div className="flex justify-around items-center w-full max-w-screen-lg mb-8 flex-grow">
         <div className="flex flex-col items-center">
@@ -175,7 +173,8 @@ function App() {
           record={record}
           onStop={stopRecording}
           strokeColor="#000000"
-          backgroundColor="#FF4081"
+          backgroundColor="#FF9900"
+          visualSetting="frequencyBars"
         />
       </div>
       <div className='flex flex-row justify-around w-full max-w-md mb-8'>

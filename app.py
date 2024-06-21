@@ -211,22 +211,22 @@ def merge_audio_files(files, phone_number):
 
     combined.export(f"merged_audios/{phone_number}-{str(datetime.datetime.now())}.mp3", format="mp3")
 
-def delete_files_in_folder():
-    global files
-    for file_name in files:
-        try:
-            if os.path.isfile(file_name):
-                os.remove(file_name)
-            else:
-                print(f"{file_name} is not a file.")
-        except Exception as e:
-            print(f"Failed to delete {file_name}. Reason: {e}")
+def delete_files_in_folder(phone_number):
+    path = f"audios/{phone_number}"
 
-    files.clear()
+    if os.path.exists(path):
+        for root, dirs, files in os.walk(path, topdown=False):
+            for name in files:
+                file_path = os.path.join(root, name)
+                os.remove(file_path)
+            for name in dirs:
+                dir_path = os.path.join(root, name)
+                os.rmdir(dir_path)
+        os.rmdir(path)
 
 def handle_termination(phone_number):
     global files
     merge_audio_files(files, phone_number)
-    delete_files_in_folder()
+    delete_files_in_folder(phone_number)
     
 socketio.run(app, debug=True, host='0.0.0.0', port=8000)

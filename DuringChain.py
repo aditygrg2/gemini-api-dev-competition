@@ -190,7 +190,7 @@ class DuringChain():
             try:
                 ai_reply = self.format_text(response.text)
             except:
-                ai_reply = "There are some problems understanding or processing your text. Please say again! Sorry for the inconvenience caused."
+                ai_reply = "There are some problems understanding or processing your text. Please say again! Sorry for the inconvenience caused. If you would like to transfer the call to agent, please let me know."
 
             return (DuringChainStatus.IN_PROGRESS_GENERAL, self.format_text(ai_reply))
         else:
@@ -251,7 +251,7 @@ class DuringChain():
         try:
             response = self.chat.send_message(input)
         except:
-            ai_reply = "There are some problems understanding or processing your text. Please say again! Sorry for the inconvenience caused."
+            ai_reply = "There are some problems understanding or processing your text. Please say again! Sorry for the inconvenience caused. If you would like to transfer the call to agent, please let me know."
             return (DuringChainStatus.IN_PROGRESS_GENERAL, ai_reply)
 
         return self.validate_response(response)
