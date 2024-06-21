@@ -103,14 +103,17 @@ class SentimentAnalysis():
             return SentimentTypes.NEUTRAL
 
     def analyze_chat(self, chat_history: str):
-        tracker = self.db.get_trackers()
-        words = tracker['words']
-        title = tracker['title']
-        chat_history = chat_history.lower()
-        count = dict()
-        for word in words:
-            count[word] = chat_history.count(word)
-        return {"title":title,"trackerCount":count}
+        trackers = self.db.get_trackers()
+        ans = []
+        for tracker in trackers:
+            words = tracker['words']
+            title = tracker['title']
+            chat_history = chat_history.lower()
+            count = dict()
+            for word in words:
+                count[word] = chat_history.count(word)
+            ans.append({"title":title,"trackerCount":count})
+        return ans
 
     def analyze_chat_and_save(self, chat_history, phoneNumber):
         print("***ANALYSE***", chat_history)

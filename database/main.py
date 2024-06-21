@@ -68,12 +68,11 @@ class Database():
             print(e)
 
     def get_trackers(self):
-        return self.trackerCollection.find_one(None,{"_id":0})
+        return self.trackerCollection.find()
     
     def insert_tracker_analysis(self, phoneNumber, data, chat_history):
         try:
-            self.analysisCollection.update_one({"phone_number": phoneNumber},{"$push": {"trackers": data}},upsert=True)
-            self.analysisCollection.update_one({"phone_number": phoneNumber},{"transcribe": chat_history})
+            self.analysisCollection.update_one({"phone_number": phoneNumber},{"trackers": data,"transcribe": chat_history},upsert=True)
         except Exception as e:
             print(e)
     
