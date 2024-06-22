@@ -72,7 +72,7 @@ class Database():
     
     def insert_tracker_analysis(self, phoneNumber, data, chat_history):
         try:
-            self.analysisCollection.update_one({"phone_number": phoneNumber},{"trackers": data,"transcribe": chat_history},upsert=True)
+            self.analysisCollection.update_one({"phone_number": phoneNumber},{'$set':{"trackers": data,"transcribe": chat_history}},upsert=True)
         except Exception as e:
             print(e)
     
