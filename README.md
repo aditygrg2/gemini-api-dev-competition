@@ -283,5 +283,11 @@ python app.py
 ```
 - Server will be started at http://localhost:8000
 
-### Creating credentials for Gemini API
+### Creating Credentials for Gemini API
+
+- Steps:
+
+1. Setup Vertex AI: https://cloud.google.com/vertex-ai/docs/start/cloud-environment
+2. Create ADC Credentials: https://cloud.google.com/docs/authentication/provide-credentials-adc
+3. Setup the environment variable. An example Application Developer Credentials file is present as an example [here](.sample.application_default_credentials.json)
 
