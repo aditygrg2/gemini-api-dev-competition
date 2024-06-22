@@ -416,6 +416,8 @@ with tab1:
     def generate_table_html(data_df):
         rows = []
         for row in data_df:
+            if row is None:
+                continue
             contact_sentiment_class = {
                 "Neutral sentiment": "contact-sentiment-neutral",
                 "Positive sentiment": "contact-sentiment-positive",
