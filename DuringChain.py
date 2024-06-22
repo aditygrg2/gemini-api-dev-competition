@@ -156,7 +156,7 @@ class DuringChain():
             generation_config=GenerationConfig(temperature=0.5),
             tools=[self.get_tools()],
             system_instruction=SYSTEM_INSTRUCTION,
-            # safety_settings=self.safety_config
+            safety_settings=self.safety_config
         )
 
         chat = model.start_chat(response_validation=False)

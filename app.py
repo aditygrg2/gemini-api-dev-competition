@@ -221,8 +221,8 @@ def merge_audio_files(files, phone_number):
 
     path = f"merged_audios/{phone_number}-{str(datetime.datetime.now())}.mp3"
 
-    combined.export("http://localhost:8000/" + path, format="mp3")
-    return path
+    combined.export(path, format="mp3")
+    return "http://localhost:8000/" + path
 
 def delete_files_in_folder(phone_number):
     path = f"audios/{phone_number}"
@@ -240,7 +240,7 @@ def delete_files_in_folder(phone_number):
 
 def handle_termination(phone_number):
     global files
-    db.insert_merged_audio_link(merge_audio_files(files, phone_number))
+    db.insert_merged_audio_link(phone_number, merge_audio_files(files, phone_number))
     delete_files_in_folder(phone_number)
     files.clear()
     
