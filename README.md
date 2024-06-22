@@ -162,34 +162,6 @@ This JSON was fetched by the model from DB while this call happened.
 }
 ```
 
-### Model failed to think of a solution and transferred the call to an agent
-
-- [Audio Link](https://github.com/aditygrg2/ivr-llm/raw/main/sample-audios/3Failed_And_Transferred.mp3)
-
-Not every time the model can provide the solution, in that case, the call is automatically transferred to the agent, to not hamper the user experience.
-
-### Multilingual? Yes! A Hindi customer with not providing correct information.
-
-- [Audio Link](https://github.com/aditygrg2/ivr-llm/raw/main/sample-audios/4Multilingual_Incorrect_Pincode.mp3)
-
-Here, the user does not provide the correct PIN code. The verification of the customer is necessary so that the agent knows that he is talking to the correct person.
-
-### Call Fallback
-
-- [Audio Link](https://github.com/aditygrg2/ivr-llm/raw/main/sample-audios/5Fallback_Audio.mp3)
-
-If there is a network error or anything unexpected happens. Fallback happens accordingly.
-
-### Technical Problem
-
-- [Audio Link](https://github.com/aditygrg2/ivr-llm/raw/main/sample-audios/TechnicalProblem.mp3)
-
-This is where the agent helps nicely and navigates user par with a technical issue.
-
-### Question related to Amazon Prime
-
-- [Audio Link](https://github.com/aditygrg2/ivr-llm/raw/main/sample-audios/AmazonPrimeRelatedQuestions.mp3)
-
 ## Setting Up Project
 
 
@@ -208,55 +180,19 @@ cp .sample.env .env
 
 ### For Linux/MacOS
 
-#### Running Frontend
+#### Starting Frontend Server
 
-- Go to `amazon-frontend` directory
-  
-```
-cd amazon-frontend
-```
+- follow steps given in `amazon-frontend` [here](https://github.com/aditygrg2/ivr-llm/blob/main/amazon-frontend/README.md)
 
-- install the packages 
-```
-npm install
-```
-> Note: Make sure you have nodejs [installed](https://nodejs.org/en/download/package-manager)
-> If you are getting any dependency error do `npm install --force`
+#### Starting Call Analysis Dashboard Server
 
-- run the project
-
-```
-npm run start
-```
-
-- You can see the website running at http://localhost:3000
-
-#### Call Analysis Dashboard
-
-- Go to streamlit folder
-
-```
-cd amazon-streamlit
-```
-
-- Install streamlit
-
-```
-pip install streamlit
-```
-
-- Run the dashboard
-
-```
-streamlit run app.py
-```
-
-- You can see the dashboard at http://localhost:8501
+- follow steps given in `amazon-streamlit` [here](https://github.com/aditygrg2/ivr-llm/blob/main/amazon-streamlit/README.md)
 
 
-#### Running backend
+#### Starting backend Server
 
 - Go to the root directory of the project
+
 - Install the python libraries
 
 ```
