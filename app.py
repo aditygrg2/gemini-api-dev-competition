@@ -5,7 +5,6 @@ import os
 import re
 from pydub import AudioSegment
 import datetime
-import models.address as Address, models.orders as Order, models.product as Product, models.transactionDetail as Transaction, models.user as User
 from VerificationChain import VerificationChain, VerificationChainStatus
 from DuringChain import DuringChain, DuringChainStatus
 from bson.json_util import dumps

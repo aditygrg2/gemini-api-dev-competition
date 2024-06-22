@@ -26,17 +26,74 @@ Build a next-generation multi-lingual virtual customer service solution powered 
 - **FAISS Embeddings:** For handling text embeddings efficiently and quick querying
 - **AWS Services:** For hosting and scaling the application. (To be implemented)
 
+## Implementation Details
+
+<img width="682" alt="Screenshot 2024-06-22 at 22 30 32" src="https://github.com/aditygrg2/ivr-llm/assets/98523623/fc235686-05db-458c-80f2-2ea86b633d73">
+
+Our project architecture is designed to efficiently handle customer queries through a seamless integration of various services. Here's a detailed walkthrough:
+
+1. **Customer Query Initiation**: 
+   - The process begins when a customer makes a query, which is captured as an audio input.
+
+2. **Parallel Processing Services**:
+   - The customer's audio is simultaneously passed to three key services:
+     - **LLM Agent Service**
+     - **Logging Service**
+     - **Sentiment Analysis Service**
+
+3. **LLM Agent Service**:
+   - **Speech-to-Text Conversion**: The user's speech is converted to text using advanced Speech-to-Text technology.
+   - **Text Processing by LLM**: The transcribed text is processed by our pre-trained Large Language Model (LLM), which has been trained on customer call recordings and Amazon help documents to generate accurate and relevant responses.
+   - **Text-to-Speech Conversion**: The AI-generated response is then converted back into speech and sent to the customer's phone.
+
+4. **Sentiment Analysis Service**:
+   - **Sentiment Detection**: The system performs sentiment analysis on the user's speech. If negative sentiment (such as frustration or anger) is detected, the call is forwarded to a human agent.
+   - **Positive/Neutral Sentiment Handling**: If the sentiment is positive or neutral, the automated system continues to interact with the customer to resolve their query.
+
+5. **Logging Service**:
+   - **Conversation Logging**: All conversations are logged with conversational trackers that monitor and store keywords and phrases used during the call, tracking the customer's topics of interest.
+   - **Keyword Tracking**: For example, tracking words like "sale," "great," or "Indian" helps us analyze interest in the Amazon Great Indian Sale.
+   - **Data Storage**: The logging service stores call recordings and transcriptions in a database for future analysis.
+
+<img width="655" alt="Screenshot 2024-06-22 at 22 30 00" src="https://github.com/aditygrg2/ivr-llm/assets/98523623/dabdcd25-947f-4089-9f0f-1842a911962d">
+
+Talking about low level, we follow a two-step process:
+
+1.⁠ ⁠*Verification Chain*: This step ensures that the agent is speaking to the account owner. It can call three different functions:
+   - If the user fails to verify themselves, the call is terminated.
+   - If the user is successfully verified, the call is transferred to the During Call Chain.
+   - If real-time data is required, the Verification Chain can request this from the database by querying the phone number. This call is made onto MongoDB in real-time.
+
+2.⁠ ⁠*During Call Chain*: This step is responsible for addressing and resolving the user’s query. It can call four different functions:
+   - Requesting user data from the database, similar to the verification chain but this chain is allowed to request for any data. Unlike the verification chain, where it was allowed to fetch only some particular data such as name, phone_number, and verification-only details.
+   - Fetching documents from the vector store, is done using FAISS (Facebook AI Similarity Search) in this implementation. The embeddings are made using the data provided in [data](/data.txt)
+   - Transferring the call to the agent, this will be routed directly to an agent.
+   - Terminating the call
+
+The best part is that all of this happens in real time.
+
 ## Audio Demos with Different Scenarios
 
 ### Good Case Complete Call
 
-- [Audio Link](sample-audios/
+- [Audio Link](https://github.com/aditygrg2/ivr-llm/raw/main/sample-audios/MainSampleTechnicalAudio.mp3)
 
 This call is a sample of a completely successful good case where all conversations are smooth. There are no mistakes on the client side and hopefully, everything goes well.
 
+### Intelligent Model
+
+- [Audio Link](https://github.com/aditygrg2/ivr-llm/raw/main/sample-audios/7AnUnderstandingAgent.mp3)
+
+When the agent felt that the query was a little weird, as the customer was requesting a refund status for an unsuccessful order, it automatically redirected the call and the agent got the below request from the model automatically.
+
+Function Call:
+```
+{'function_name': 'send_to_agent_for_manual_intervention', 'function_args': {'query': 'Customer is looking for a refund status for an unsuccessful order (Order ID: 100001). Could you please assist the customer with their refund?'}}
+```
+
 ### Call with an angry/frustrated customer
 
-- [Audio Link](sample-audios/
+- [Audio Link](https://github.com/aditygrg2/ivr-llm/raw/main/sample-audios/Frustration1.mp3)
 
 Here, the customer is angry, and as soon as the model gets to know this, the call is directly transferred to an agent.
 
@@ -123,6 +180,16 @@ Here, the user does not provide the correct PIN code. The verification of the cu
 
 If there is a network error or anything unexpected happens. Fallback happens accordingly.
 
+### Technical Problem
+
+- [Audio Link](https://github.com/aditygrg2/ivr-llm/raw/main/sample-audios/TechnicalProblem.mp3)
+
+This is where the agent helps nicely and navigates user par with a technical issue.
+
+### Question related to Amazon Prime
+
+- [Audio Link](https://github.com/aditygrg2/ivr-llm/raw/main/sample-audios/AmazonPrimeRelatedQuestions.mp3)
+
 ## Setting Up Project
 
 
@@ -201,7 +268,6 @@ pip install -r req.txt
 
 In linux run:
 ```
-sudo apt-get update
 sudo apt-get install ffmpeg
 ```
 
