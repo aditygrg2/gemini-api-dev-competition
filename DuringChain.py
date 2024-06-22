@@ -233,6 +233,8 @@ class DuringChain():
                 return (DuringChainStatus.IN_PROGRESS_USER_QUERY, self.format_text(response[1]))
 
             elif (function_name == "get_info_about_query"):
+                question = function_data['query']
+                
                 response = self.send_message(
                     Part.from_function_response(
                         name=function_name,
