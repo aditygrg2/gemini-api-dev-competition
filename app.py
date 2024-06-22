@@ -9,7 +9,7 @@ import models.address as Address, models.orders as Order, models.product as Prod
 from VerificationChain import VerificationChain, VerificationChainStatus
 from DuringChain import DuringChain, DuringChainStatus
 from bson.json_util import dumps
-from flask import Flask
+from flask import Flask, send_file
 from flask_socketio import SocketIO, emit
 from io import BytesIO
 from uuid import uuid4
@@ -25,12 +25,16 @@ from database.main import Database
 from sentiment_analysis.main import SentimentAnalysis
 from sentiment_analysis.main import SentimentTypes
 
-
 load_dotenv()
 
 app = Flask(__name__)
 CORS(app)
 socketio = SocketIO(app,cors_allowed_origins="*")
+
+@app.route('/merged_audios/<path>')
+def send_report(path):
+    print(path)
+    return send_file(os.path.dirname(os.path.abspath(__file__)) + f"/merged_audios/{path}", as_attachment = True)
 
 recognizer = sr.Recognizer()
 AudioSegment.converter = which("ffmpeg")
@@ -213,7 +217,10 @@ def merge_audio_files(files, phone_number):
             audio = AudioSegment.from_file(file_path)
             combined += audio 
 
-    combined.export(f"merged_audios/{phone_number}-{str(datetime.datetime.now())}.mp3", format="mp3")
+    path = f"merged_audios/{phone_number}-{str(datetime.datetime.now())}.mp3"
+
+    combined.export(path, format="mp3")
+    return path
 
 def delete_files_in_folder(phone_number):
     path = f"audios/{phone_number}"
@@ -231,7 +238,7 @@ def delete_files_in_folder(phone_number):
 
 def handle_termination(phone_number):
     global files
-    merge_audio_files(files, phone_number)
+    db.insert_merged_audio_link(merge_audio_files(files, phone_number))
     delete_files_in_folder(phone_number)
     files.clear()
     

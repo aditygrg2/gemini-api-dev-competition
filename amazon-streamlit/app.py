@@ -64,7 +64,8 @@ class Helper():
         try:
             audio_analysis = self.get_audio_score(call_data['call_sent'])
             len_transcribed = len(call_data.get("transcribe",""))
-            return {"phone_number": call_data['phone_number'], "transcribe": call_data.get("transcribe","Can't generate transcribe") ,"contact_sentiment":audio_analysis['contact_sentiment'],"agent_sentiment": audio_analysis['agent_sentiment'],"customer_feedback_rating": call_data.get('contact_feedback',dict()).get('score',"not given"),"customer_feedback_text":call_data.get('contact_feedback',dict()).get('text',"not given"),"agent_feedback_rating": call_data.get('agent_feedback',dict()).get('score',"not given"),"agent_feedback_text": call_data.get('agent_feedback',dict()).get('text',"not given")}
+            merged_audio_link = call_data.get("merged_audio_link", "")
+            return {"phone_number": call_data['phone_number'], "transcribe": call_data.get("transcribe","Can't generate transcribe") ,"contact_sentiment":audio_analysis['contact_sentiment'],"agent_sentiment": audio_analysis['agent_sentiment'],"customer_feedback_rating": call_data.get('contact_feedback',dict()).get('score',"not given"),"customer_feedback_text":call_data.get('contact_feedback',dict()).get('text',"not given"),"agent_feedback_rating": call_data.get('agent_feedback',dict()).get('score',"not given"),"agent_feedback_text": call_data.get('agent_feedback',dict()).get('text',"not given"), "merged_audio_link": merged_audio_link}
         except Exception as e:
             print(e)
 
@@ -416,7 +417,6 @@ with tab1:
     def generate_table_html(data_df):
         rows = []
         for row in data_df:
-            print(row)
             contact_sentiment_class = {
                 "Neutral sentiment": "contact-sentiment-neutral",
                 "Positive sentiment": "contact-sentiment-positive",
@@ -433,7 +433,7 @@ with tab1:
                     <td>{row['customer_feedback_text']}</td>
                     <td>{row['agent_feedback_rating']}</td>
                     <td>{row['agent_feedback_text']}</td>
-                    <td>play</td>
+                    <td><a href={row.get('merged_audio_link', "")}>Link to Audio</a></td>
                     <td>
                         <details>
                         <summary>Show Transcription</summary>
@@ -454,7 +454,7 @@ with tab1:
                     <th>Agent feedback score</th>
                     <th>Agent Feedback text</th>
                     <th>Recording</th>
-                    <th>transcribe</th>
+                    <th>Transcription</th>
                 </tr>
             </thead>
             <tbody>

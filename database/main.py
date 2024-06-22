@@ -75,6 +75,12 @@ class Database():
             self.analysisCollection.update_one({"phone_number": phoneNumber},{'$set':{"trackers": data,"transcribe": chat_history}},upsert=True)
         except Exception as e:
             print(e)
+
+    def insert_merged_audio_link(self, phone_number, merged_audio_link):
+        try:
+            self.analysisCollection.update_one({"phone_number": phone_number},{'$set':{"merged_audio_link": merged_audio_link}},upsert=True)
+        except Exception as e:
+            print(e)
     
     def insert_feedback_analysis(self,phoneNumber, data):
         try:
