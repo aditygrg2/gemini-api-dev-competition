@@ -6,6 +6,9 @@ Build a next-generation multi-lingual virtual customer service solution powered 
 #### Video Demo Link: https://youtu.be/1stubbPNa3Y
 #### Presentation Link: https://drive.google.com/file/d/1sC2Qje31LMXvKTbpA0ccCd9Mt3bUD1r2/view?usp=sharing
 
+Demo:
+https://github.com/aditygrg2/ivr-llm/assets/100110395/813c693f-6237-4e9a-a740-804f8102e600
+
 #### Team Log Mergers
 - Aditya Garg
 - Mehul Gupta
