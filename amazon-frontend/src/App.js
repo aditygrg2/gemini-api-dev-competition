@@ -19,14 +19,14 @@ function App() {
   const [isAgentGifPlaying, setIsAgentGifPlaying] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState('');
   const [isPhoneNumberValid, setIsPhoneNumberValid] = useState(false);
-  const [isBackendResponseReceived, setIsBackendResponseReceived] = useState(true); // New state variable
-  const [isWaitingForResponse, setIsWaitingForResponse] = useState(false); // New state variable
+  const [isBackendResponseReceived, setIsBackendResponseReceived] = useState(true);
+  const [isWaitingForResponse, setIsWaitingForResponse] = useState(false);
   const mediaStream = useRef(null);
   const mediaRecorder = useRef(null);
   const inputRef = useRef();
   const chunks = useRef([]);
-  const sourceRef = useRef();
   const audioRef = useRef(null);
+  const pRef = useRef(null);
 
   const startRecording = async () => {
     if (!isPhoneNumberValid || !isBackendResponseReceived) return; // Prevent starting recording if phone number is invalid or backend response is not received
@@ -142,6 +142,84 @@ function App() {
           <li class="mb-2">The calls are generated and sent to the frontend via API. The real call system will handle this cellularly.</li>
           <li>Any transfer-related or call-ending updates will be alerted.</li>
         </ol>
+
+        <details>
+          <summary>To test this, we have generated a sample user contact with the following data. You can use this to test. Click here to check.</summary>
+          <p>
+### User Information:
+- **Name:** Amit Sharma
+- **Apartment Number:** 101
+- **Street:** MG Road
+- **Landmark:** Near City Mall
+- **City:** Pune
+- **State:** Maharashtra
+- **Pincode:** 262311
+- **Email:** amitsharma@gmail.com
+- **Phone Number:** 1234567890
+- **Subscription Status:** True
+
+### Previous Orders:
+1. **Order 1:**
+   - **Order ID:** 34646
+   - **Status:** Delivered
+   - **Transaction:**
+     - **Transaction ID:** 123456
+     - **Status:** Successful
+     - **Payment Method:** Google Pay
+     - **Total Amount:** 20400
+     - **Timestamp:** 09:30 AM on 19/06/24
+   - **Items:**
+     - **Item 1:**
+       - **Product ID:** 35236
+       - **Name:** The Alchemist
+       - **Description:** A novel by Paulo Coelho, a story about following your dreams.
+       - **Category:** Books
+       - **Average Rating:** 4
+       - **Price:** 400
+       - **Reviews:** Inspirational read, A must-read for everyone
+     - **Item 2:**
+       - **Product ID:** 45002
+       - **Name:** Sony WH-1000XM4
+       - **Description:** Noise Cancelling Wireless Headphones with long battery life.
+       - **Category:** Electronics
+       - **Average Rating:** 4
+       - **Price:** 20000
+       - **Reviews:** Excellent sound quality, Best noise cancellation
+   - **Order Timestamp:** 2024-06-21T07:23:33.330Z
+   - **Estimated Delivery Time:** 24/6/24
+   - **Last Location Update:** 20/6/24 - 06:08 PM - Indore, Madhya Pradesh - Package left the Amazon Facility
+
+2. **Order 2:**
+   - **Order ID:** 97846
+   - **Status:** In-Transit
+   - **Transaction:**
+     - **Transaction ID:** 789012
+     - **Status:** Successful
+     - **Payment Method:** Net Banking
+     - **Total Amount:** 95000
+     - **Timestamp:** 05:45 PM on 20/06/24
+   - **Items:**
+     - **Item 1:**
+       - **Product ID:** 90002
+       - **Name:** Dell XPS 13
+       - **Description:** 13.4-inch FHD laptop with Intel Core i7, 16GB RAM, 512GB SSD.
+       - **Category:** Electronics
+       - **Average Rating:** 4
+       - **Price:** 70000
+       - **Reviews:** Powerful performance, Sleek and portable
+     - **Item 2:**
+       - **Product ID:** 100002
+       - **Name:** LG Convection Microwave Oven
+       - **Description:** 32L, Auto Cook Menu, Child Lock, Stainless Steel.
+       - **Category:** Home Appliances
+       - **Average Rating:** 4
+       - **Price:** 25000
+       - **Reviews:** Great for baking, User-friendly and efficient
+   - **Order Timestamp:** 2024-06-21T07:23:33.330Z
+   - **Estimated Delivery Time:** 25/6/24
+   - **Last Location Update:** 21/6/24 - 10:08 PM - Surat, Gujarat - Left the Amazon Facility
+          </p>
+        </details>        
       </div>
       <div className="flex justify-around items-center w-full max-w-screen-lg mb-8 flex-grow">
         <div className="flex flex-col items-center">
