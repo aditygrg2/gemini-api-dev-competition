@@ -413,30 +413,27 @@ with tab1:
     </style>
     """
 
-    # Convert the DataFrame to HTML
     def generate_table_html(data_df):
         rows = []
         for row in data_df:
-            if row is None:
-                continue
             contact_sentiment_class = {
                 "Neutral sentiment": "contact-sentiment-neutral",
                 "Positive sentiment": "contact-sentiment-positive",
                 "Negative sentiment": "contact-sentiment-negative"
-            }.get(row.get('contact_sentiment',dict()).get('text',"Neutral sentiment"), "contact-sentiment-neutral")
+            }.get(row.get('contact_sentiment', {}).get('text', "Neutral sentiment"), "contact-sentiment-neutral")
 
             agent_sentiment_class = "agent-sentiment-neutral"
 
             rows.append(f"""<tr>
-                    <td>{row['phone_number']}</td>
-                    <td><span class="{contact_sentiment_class}">{row['contact_sentiment']['text']}</span></td>
-                    <td><span class="{agent_sentiment_class}">{row['agent_sentiment']['text']}</span></td>
-                    <td>{row['customer_feedback_rating']}</td>
-                    <td>{row['customer_feedback_text']}</td>
-                    <td>{row['agent_feedback_rating']}</td>
-                    <td>{row['agent_feedback_text']}</td>
-                    <td>play</td>
-                    <td>
+                    <td style="text-align: center;">{row['phone_number']}</td>
+                    <td style="text-align: center;"><span class="{contact_sentiment_class}">{row['contact_sentiment']['text']}</span></td>
+                    <td style="text-align: center;"><span class="{agent_sentiment_class}">{row['agent_sentiment']['text']}</span></td>
+                    <td style="text-align: center;">{row['customer_feedback_rating']}</td>
+                    <td style="text-align: center;">{row['customer_feedback_text']}</td>
+                    <td style="text-align: center;">{row['agent_feedback_rating']}</td>
+                    <td style="text-align: center;">{row['agent_feedback_text']}</td>
+                    <td style="text-align: center;">play</td>
+                    <td style="text-align: center;">
                         <details>
                         <summary>Show Transcription</summary>
                         <p>{row['transcribe']}</p>
@@ -448,15 +445,15 @@ with tab1:
         <table style="margin-bottom:100px;">
             <thead>
                 <tr>
-                    <th>Phone Number</th>
-                    <th>Contact Sentiment</th>
-                    <th>Agent Sentiment</th>
-                    <th>Customer feedback score</th>
-                    <th>Customer Feedback text</th>
-                    <th>Agent feedback score</th>
-                    <th>Agent Feedback text</th>
-                    <th>Recording</th>
-                    <th>transcribe</th>
+                    <th style="text-align: center;">Phone Number</th>
+                    <th style="text-align: center;">Contact Sentiment</th>
+                    <th style="text-align: center;">Agent Sentiment</th>
+                    <th style="text-align: center;">Customer feedback score</th>
+                    <th style="text-align: center;">Customer Feedback text</th>
+                    <th style="text-align: center;">Agent feedback score</th>
+                    <th style="text-align: center;">Agent Feedback text</th>
+                    <th style="text-align: center;">Recording</th>
+                    <th style="text-align: center;">transcribe</th>
                 </tr>
             </thead>
             <tbody>
@@ -465,8 +462,10 @@ with tab1:
         </table>
         """
 
-    # Generate the table HTML
+    # Example usage:
+    # Assuming data_df is your pandas DataFrame containing the data
     table_html = generate_table_html(data_df)
+
 
     # Inject the CSS and HTML into the Streamlit app
     st.title("Call Log Table")
