@@ -176,6 +176,8 @@ def convert_to_audio_and_send(text, phone_number):
     text = text.replace("`", "")
     text = text.replace("'", "")
     text = text.replace("/", "")
+    text = text.replace('"', "")
+    text = text.replace('pythonprint', "")
     tts = gTTS(text)
     audio_output_buffer = BytesIO()
     tts.write_to_fp(audio_output_buffer)
@@ -219,7 +221,7 @@ def merge_audio_files(files, phone_number):
 
     path = f"merged_audios/{phone_number}-{str(datetime.datetime.now())}.mp3"
 
-    combined.export(path, format="mp3")
+    combined.export("http://localhost:8000/" + path, format="mp3")
     return path
 
 def delete_files_in_folder(phone_number):
