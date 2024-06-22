@@ -29,7 +29,7 @@ docstring_parser==0.16
 email_validator==2.1.1
 exceptiongroup==1.2.1
 executing==2.0.1
-faiss-gpu==1.7.2
+faiss-gpu
 fastapi==0.111.0
 fastapi-cli==0.0.4
 filelock==3.15.1
@@ -87,6 +87,7 @@ langchain-google-genai==1.0.6
 langchain-openai==0.1.8
 langchain-text-splitters==0.2.1
 langsmith==0.1.77
+librosa
 markdown-it-py==3.0.0
 MarkupSafe==2.1.5
 marshmallow==3.21.3
@@ -163,8 +164,10 @@ tiktoken==0.7.0
 tokenizers==0.19.1
 tomli==2.0.1
 tornado==6.4.1
+torch
 tqdm==4.66.4
 traitlets==5.14.3
+transformers
 typer==0.12.3
 typing-inspect==0.9.0
 typing_extensions==4.12.2
