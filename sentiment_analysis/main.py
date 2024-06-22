@@ -56,7 +56,7 @@ class SentimentAnalysis():
             logits = self.model(**inputs).logits
             predicted_ids = torch.argmax(logits, dim=-1)
             label = self.model.config.id2label[predicted_ids.item()]
-            labels.append(label)
+            return label
         return labels
 
     def analyze_audio(self, file_path):

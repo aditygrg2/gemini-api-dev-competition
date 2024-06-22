@@ -82,7 +82,7 @@ class Database():
                 "score":data['score'],
                 "text": data['text']
             }
-            self.analysisCollection.update_one({"phone_number":phoneNumber},{"contact_feedback":feedback},upsert=True)
+            self.analysisCollection.update_one({"phone_number":phoneNumber},{"$set":{"contact_feedback":feedback}},upsert=True)
         except Exception as e:
             print(e)
 
@@ -92,7 +92,7 @@ class Database():
                 "score":data['score'],
                 "text": data['text']
             }
-            self.analysisCollection.update_one({"phone_number":phoneNumber},{"agent_feedback": feedback},upsert=True)
+            self.analysisCollection.update_one({"phone_number":phoneNumber},{"$set":{"agent_feedback": feedback}},upsert=True)
         except Exception as e:
             print(e)
     
