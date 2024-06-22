@@ -20,10 +20,11 @@ class Helper():
 
     def get_audio_score_for_agent(self, call_sent):
         count = {'pos':0,'neu':0,'neg':0}
+        total = 0
         for item in call_sent:
             if item['type']=="AI":
                 count[item['sent']] = count[item['sent']] + 1
-        total = len(call_sent)
+                total = total + 1
         count['pos'] = math.ceil(count['pos']*100/total)
         count['neg'] = math.ceil(count['neg']*100/total)
         count['neu'] = 100 - count['neg'] - count['pos']
@@ -31,10 +32,11 @@ class Helper():
 
     def get_audio_score_for_human(self, call_sent):
         count = {'pos':0,'neu':0,'neg':0}
+        total = 0
         for item in call_sent:
             if item['type']=="Human":
                 count[item['sent']] = count[item['sent']] + 1
-        total = len(call_sent)
+                total = total + 1
         count['pos'] = math.ceil(count['pos']*100/total)
         count['neg'] = math.ceil(count['neg']*100/total)
         count['neu'] = 100 - count['neg'] - count['pos']
@@ -63,7 +65,6 @@ class Helper():
     def calculate_call_sentiment(self, call_data):
         try:
             audio_analysis = self.get_audio_score(call_data['call_sent'])
-            len_transcribed = len(call_data.get("transcribe",""))
             return {"phone_number": call_data['phone_number'], "transcribe": call_data.get("transcribe","Can't generate transcribe") ,"contact_sentiment":audio_analysis['contact_sentiment'],"agent_sentiment": audio_analysis['agent_sentiment'],"customer_feedback_rating": call_data.get('contact_feedback',dict()).get('score',"not given"),"customer_feedback_text":call_data.get('contact_feedback',dict()).get('text',"not given"),"agent_feedback_rating": call_data.get('agent_feedback',dict()).get('score',"not given"),"agent_feedback_text": call_data.get('agent_feedback',dict()).get('text',"not given")}
         except Exception as e:
             print(e)
@@ -416,7 +417,8 @@ with tab1:
     def generate_table_html(data_df):
         rows = []
         for row in data_df:
-            print(row)
+            if row is None:
+                continue
             contact_sentiment_class = {
                 "Neutral sentiment": "contact-sentiment-neutral",
                 "Positive sentiment": "contact-sentiment-positive",
