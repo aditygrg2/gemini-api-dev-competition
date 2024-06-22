@@ -42,7 +42,7 @@ Here, the customer is angry, and as soon as the model gets to know this, the cal
 
 ### Crucial Operations are only handled by a real agent
 
-- [Audio Link](sample-audios/6Successful_Termination.mp3)
+- [Audio Link](https://github.com/aditygrg2/ivr-llm/raw/main/sample-audios/6Successful_Termination.mp3)
 
 A crucial query (for example a refund or replacement request) which is risky to automate, will be transferred to the agent directly. (We assume here that return/replacements are crucial and should not be handled by the model directly, this can be anything that can be configured beyond this prototype)
 
@@ -107,19 +107,19 @@ This JSON was fetched by the model from DB while this call happened.
 
 ### Model failed to think of a solution and transferred the call to an agent
 
-- [Audio Link](sample-audios/3Failed_And_Transferred.mp3)
+- [Audio Link](https://github.com/aditygrg2/ivr-llm/raw/main/sample-audios/3Failed_And_Transferred.mp3)
 
 Not every time the model can provide the solution, in that case, the call is automatically transferred to the agent, to not hamper the user experience.
 
 ### Multilingual? Yes! A Hindi customer with not providing correct information.
 
-- [Audio Link](sample-audios/4Multilingual_Incorrect_Pincode.mp3)
+- [Audio Link](https://github.com/aditygrg2/ivr-llm/raw/main/sample-audios/4Multilingual_Incorrect_Pincode.mp3)
 
 Here, the user does not provide the correct PIN code. The verification of the customer is necessary so that the agent knows that he is talking to the correct person.
 
 ### Call Fallback
 
-- [Audio Link](sample-audios/5Fallback_Audio.mp3)
+- [Audio Link](https://github.com/aditygrg2/ivr-llm/raw/main/sample-audios/5Fallback_Audio.mp3)
 
 If there is a network error or anything unexpected happens. Fallback happens accordingly.
 
