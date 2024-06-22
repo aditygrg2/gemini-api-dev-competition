@@ -424,7 +424,12 @@ with tab1:
                 "Negative sentiment": "contact-sentiment-negative"
             }.get(row.get('contact_sentiment', {}).get('text', "Neutral sentiment"), "contact-sentiment-neutral")
 
-            agent_sentiment_class = "agent-sentiment-neutral"
+            agent_sentiment_class = {
+                "Neutral sentiment": "contact-sentiment-neutral",
+                "Positive sentiment": "contact-sentiment-positive",
+                "Negative sentiment": "contact-sentiment-negative"
+            }.get(row.get('agent_sentiment',dict()).get('text',"Neutral sentiment"), "contact-sentiment-neutral")
+
 
             rows.append(f"""<tr>
                     <td style="text-align: center;">{row['phone_number']}</td>
