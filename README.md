@@ -6,6 +6,11 @@ Build a next-generation multi-lingual virtual customer service solution powered 
 ### Video Demo Link: https://youtu.be/1stubbPNa3Y
 ### Presentation Link: https://drive.google.com/file/d/1sC2Qje31LMXvKTbpA0ccCd9Mt3bUD1r2/view?usp=sharing
 
+#### Team Log Mergers
+- Aditya Garg
+- Mehul Gupta
+- Parteek Goyal
+
 ## Features:
 - Provides a seamless and natural conversational flow over the phone with a live conversational agent.
 - Can fetch data from real-time Amazon databases and input it into LLM for rich outputs.
