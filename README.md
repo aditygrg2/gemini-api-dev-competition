@@ -201,6 +201,7 @@ pip install -r req.txt
 
 In linux run:
 ```
+sudo apt-get update
 sudo apt-get install ffmpeg
 ```
 
