@@ -123,4 +123,98 @@ Here, the user does not provide the correct PIN code. The verification of the cu
 
 If there is a network error or anything unexpected happens. Fallback happens accordingly.
 
-### 
+## Setting Up Project
+
+
+- Clone the project
+  
+```
+git clone https://github.com/aditygrg2/ivr-llm
+
+cd ivr-llm
+```
+- Create environment file
+
+```
+cp .sample.env .env
+```
+
+### For Linux/MacOS
+
+#### Running Frontend
+
+- Go to `amazon-frontend` directory
+  
+```
+cd amazon-frontend
+```
+
+- install the packages 
+```
+npm install
+```
+> Note: Make sure you have nodejs [installed](https://nodejs.org/en/download/package-manager)
+> If you are getting any dependency error do `npm install --force`
+
+- run the project
+
+```
+npm run start
+```
+
+- You can see the website running at http://localhost:3000
+
+#### Call Analysis Dashboard
+
+- Go to streamlit folder
+
+```
+cd amazon-streamlit
+```
+
+- Install streamlit
+
+```
+pip install streamlit
+```
+
+- Run the dashboard
+
+```
+streamlit run app.py
+```
+
+- You can see the dashboard at http://localhost:8501
+
+
+#### Running backend
+
+- Go to the root directory of the project
+- Install the python libraries
+
+```
+pip install -r req.txt
+```
+> Note: The recommended python version is 3.10.x
+
+- Install `ffmpeg`
+
+In linux run:
+```
+sudo apt-get install ffmpeg
+```
+
+In Mac run:
+```
+brew install ffmpeg
+```
+
+- Start the server
+
+```
+python app.py
+```
+- Server will be started at http://localhost:8000
+
+### Creating credentials for Gemini API
+
