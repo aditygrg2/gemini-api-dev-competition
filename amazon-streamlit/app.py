@@ -20,10 +20,11 @@ class Helper():
 
     def get_audio_score_for_agent(self, call_sent):
         count = {'pos':0,'neu':0,'neg':0}
+        total = 0
         for item in call_sent:
             if item['type']=="AI":
                 count[item['sent']] = count[item['sent']] + 1
-        total = len(call_sent)
+                total = total + 1
         count['pos'] = math.ceil(count['pos']*100/total)
         count['neg'] = math.ceil(count['neg']*100/total)
         count['neu'] = 100 - count['neg'] - count['pos']
@@ -31,10 +32,11 @@ class Helper():
 
     def get_audio_score_for_human(self, call_sent):
         count = {'pos':0,'neu':0,'neg':0}
+        total = 0
         for item in call_sent:
             if item['type']=="Human":
                 count[item['sent']] = count[item['sent']] + 1
-        total = len(call_sent)
+                total = total + 1
         count['pos'] = math.ceil(count['pos']*100/total)
         count['neg'] = math.ceil(count['neg']*100/total)
         count['neu'] = 100 - count['neg'] - count['pos']
@@ -63,7 +65,6 @@ class Helper():
     def calculate_call_sentiment(self, call_data):
         try:
             audio_analysis = self.get_audio_score(call_data['call_sent'])
-            len_transcribed = len(call_data.get("transcribe",""))
             merged_audio_link = call_data.get("merged_audio_link", "")
             return {"phone_number": call_data['phone_number'], "transcribe": call_data.get("transcribe","Can't generate transcribe") ,"contact_sentiment":audio_analysis['contact_sentiment'],"agent_sentiment": audio_analysis['agent_sentiment'],"customer_feedback_rating": call_data.get('contact_feedback',dict()).get('score',"not given"),"customer_feedback_text":call_data.get('contact_feedback',dict()).get('text',"not given"),"agent_feedback_rating": call_data.get('agent_feedback',dict()).get('score',"not given"),"agent_feedback_text": call_data.get('agent_feedback',dict()).get('text',"not given"), "merged_audio_link": merged_audio_link}
         except Exception as e:
@@ -413,28 +414,34 @@ with tab1:
     </style>
     """
 
-    # Convert the DataFrame to HTML
     def generate_table_html(data_df):
         rows = []
         for row in data_df:
+            if row is None:
+                continue
             contact_sentiment_class = {
                 "Neutral sentiment": "contact-sentiment-neutral",
                 "Positive sentiment": "contact-sentiment-positive",
                 "Negative sentiment": "contact-sentiment-negative"
-            }.get(row.get('contact_sentiment',dict()).get('text',"Neutral sentiment"), "contact-sentiment-neutral")
+            }.get(row.get('contact_sentiment', {}).get('text', "Neutral sentiment"), "contact-sentiment-neutral")
 
-            agent_sentiment_class = "agent-sentiment-neutral"
+            agent_sentiment_class = {
+                "Neutral sentiment": "contact-sentiment-neutral",
+                "Positive sentiment": "contact-sentiment-positive",
+                "Negative sentiment": "contact-sentiment-negative"
+            }.get(row.get('agent_sentiment',dict()).get('text',"Neutral sentiment"), "contact-sentiment-neutral")
+
 
             rows.append(f"""<tr>
-                    <td>{row['phone_number']}</td>
-                    <td><span class="{contact_sentiment_class}">{row['contact_sentiment']['text']}</span></td>
-                    <td><span class="{agent_sentiment_class}">{row['agent_sentiment']['text']}</span></td>
-                    <td>{row['customer_feedback_rating']}</td>
-                    <td>{row['customer_feedback_text']}</td>
-                    <td>{row['agent_feedback_rating']}</td>
+                    <td style="text-align: center;">{row['phone_number']}</td>
+                    <td style="text-align: center;"><span class="{contact_sentiment_class}">{row['contact_sentiment']['text']}</span></td>
+                    <td style="text-align: center;"><span class="{agent_sentiment_class}">{row['agent_sentiment']['text']}</span></td>
+                    <td style="text-align: center;">{row['customer_feedback_rating']}</td>
+                    <td style="text-align: center;">{row['customer_feedback_text']}</td>
+                    <td style="text-align: center;">{row['agent_feedback_rating']}</td>
                     <td>{row['agent_feedback_text']}</td>
                     <td><a href={row.get('merged_audio_link', "")}>Link to Audio</a></td>
-                    <td>
+                    <td style="text-align: center;">
                         <details>
                         <summary>Show Transcription</summary>
                         <p>{row['transcribe']}</p>
@@ -443,7 +450,7 @@ with tab1:
                 </tr>""")
 
         return f"""
-        <table style="margin-bottom:100px;">
+        <table style="margin-bottom:100px; text-align: center;">
             <thead>
                 <tr>
                     <th>Phone Number</th>
@@ -463,8 +470,10 @@ with tab1:
         </table>
         """
 
-    # Generate the table HTML
+    # Example usage:
+    # Assuming data_df is your pandas DataFrame containing the data
     table_html = generate_table_html(data_df)
+
 
     # Inject the CSS and HTML into the Streamlit app
     st.title("Call Log Table")
