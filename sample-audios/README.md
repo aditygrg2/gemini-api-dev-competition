@@ -1,4 +1,4 @@
-## Sample audio
+## Sample Audios
 
 ### Model failed to think of a solution and transferred the call to an agent
 
