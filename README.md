@@ -40,7 +40,7 @@ https://drive.google.com/file/d/1sC2Qje31LMXvKTbpA0ccCd9Mt3bUD1r2/view?usp=shari
 
 ## Implementation Details
 
-<img width="682" alt="Screenshot 2024-06-22 at 22 30 32" src="https://github.com/aditygrg2/ivr-llm/assets/98523623/fc235686-05db-458c-80f2-2ea86b633d73">
+<img width="682" alt="Screenshot 2024-06-22 at 22 30 32" src="https://github.com/aditygrg2/gemini-api-dev-competition/assets/98523623/fc235686-05db-458c-80f2-2ea86b633d73">
 
 Our project architecture is designed to efficiently handle customer queries through a seamless integration of various services. Here's a detailed walkthrough:
 
@@ -67,7 +67,7 @@ Our project architecture is designed to efficiently handle customer queries thro
    - **Keyword Tracking**: For example, tracking words like "sale," "great," or "Indian" helps us analyze interest in the Amazon Great Indian Sale.
    - **Data Storage**: The logging service stores call recordings and transcriptions in a database for future analysis.
 
-<img width="655" alt="Screenshot 2024-06-22 at 22 30 00" src="https://github.com/aditygrg2/ivr-llm/assets/98523623/dabdcd25-947f-4089-9f0f-1842a911962d">
+<img width="655" alt="Screenshot 2024-06-22 at 22 30 00" src="https://github.com/aditygrg2/gemini-api-dev-competition/assets/98523623/dabdcd25-947f-4089-9f0f-1842a911962d">
 
 Talking about low level, we follow a two-step process:
 
@@ -88,13 +88,13 @@ The best part is that all of this happens in real time.
 
 ### Good Case Complete Call
 
-- [Audio Link](https://github.com/aditygrg2/ivr-llm/raw/main/sample-audios/MainSampleTechnicalAudio.mp3)
+- [Audio Link](https://github.com/aditygrg2/gemini-api-dev-competition/raw/main/sample-audios/MainSampleTechnicalAudio.mp3)
 
 This call is a sample of a completely successful good case where all conversations are smooth. There are no mistakes on the client side and hopefully, everything goes well.
 
 ### Intelligent Model
 
-- [Audio Link](https://github.com/aditygrg2/ivr-llm/raw/main/sample-audios/7AnUnderstandingAgent.mp3)
+- [Audio Link](https://github.com/aditygrg2/gemini-api-dev-competition/raw/main/sample-audios/7AnUnderstandingAgent.mp3)
 
 When the agent felt that the query was a little weird, as the customer was requesting a refund status for an unsuccessful order, it automatically redirected the call and the agent got the below request from the model automatically.
 
@@ -105,13 +105,13 @@ Function Call:
 
 ### Call with an angry/frustrated customer
 
-- [Audio Link](https://github.com/aditygrg2/ivr-llm/raw/main/sample-audios/Frustration1.mp3)
+- [Audio Link](https://github.com/aditygrg2/gemini-api-dev-competition/raw/main/sample-audios/Frustration1.mp3)
 
 Here, the customer is angry, and as soon as the model gets to know this, the call is directly transferred to an agent.
 
 ### Crucial Operations are only handled by a real agent
 
-- [Audio Link](https://github.com/aditygrg2/ivr-llm/raw/main/sample-audios/6Successful_Termination.mp3)
+- [Audio Link](https://github.com/aditygrg2/gemini-api-dev-competition/raw/main/sample-audios/6Successful_Termination.mp3)
 
 A crucial query (for example a refund or replacement request) which is risky to automate, will be transferred to the agent directly. (We assume here that return/replacements are crucial and should not be handled by the model directly, this can be anything that can be configured beyond this prototype)
 
@@ -180,9 +180,9 @@ This JSON was fetched by the model from DB while this call happened.
 - Clone the project
   
 ```
-git clone https://github.com/aditygrg2/ivr-llm
+git clone https://github.com/aditygrg2/gemini-api-dev-competition
 
-cd ivr-llm
+cd gemini-api-dev-competition
 ```
 - Create environment file
 
@@ -194,11 +194,11 @@ cp .sample.env .env
 
 #### Starting Frontend Server
 
-- follow steps given in `amazon-frontend` [here](https://github.com/aditygrg2/ivr-llm/blob/main/amazon-frontend/README.md)
+- follow steps given in `amazon-frontend` [here](https://github.com/aditygrg2/gemini-api-dev-competition/blob/main/amazon-frontend/README.md)
 
 #### Starting Call Analysis Dashboard Server
 
-- follow steps given in `amazon-streamlit` [here](https://github.com/aditygrg2/ivr-llm/blob/main/amazon-streamlit/README.md)
+- follow steps given in `amazon-streamlit` [here](https://github.com/aditygrg2/gemini-api-dev-competition/blob/main/amazon-streamlit/README.md)
 
 
 #### Starting backend Server
