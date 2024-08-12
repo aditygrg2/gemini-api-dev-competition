@@ -132,7 +132,7 @@ function App() {
         </div>
       </header>
       <div class="bg-white shadow-lg rounded-lg p-8">
-        <h1 class="text-2xl font-bold text-gray-800 mb-4">Amazon HackOn 2024 Submission Project</h1>
+        <h1 class="text-2xl font-bold text-gray-800 mb-4">Gemini API Developer Competition 2024 Submission Project</h1>
         <p class="text-gray-700 mb-6">Welcome to the mock call frontend. Here, you will simulate a call to the agent for demonstration purposes. It will be used for fetching out data from Amazon Records.</p>
 
         <h2 class="text-xl font-semibold text-gray-800 mb-2">Instructions to use:</h2>
