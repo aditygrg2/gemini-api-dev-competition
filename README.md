@@ -1,4 +1,6 @@
-# Virtual Customer Service - Amazon HackOn 2024 Submission Project
+# VartaAI - Google API Developer Competition 2024 Submission Project
+
+> Note: We are using Amazon Customer Support Service as example in this project
 
 ## Problem Statement:
 Build a next-generation multi-lingual virtual customer service solution powered by Large Language models (LLM) and Deep learning algorithms. The goal is to enable seamless, natural communication over the phone, offering quicker query resolution without the limitations of traditional chatbots. Implement sentiment analysis to understand customer emotions better and adjust the agent's responses accordingly, improving the overall experience and service quality. By implementing LLM, Gen AI, IVR, and Text-to-Speech capabilities, Amazon can streamline customer support while optimizing costs
