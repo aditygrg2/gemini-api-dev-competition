@@ -1,4 +1,4 @@
-# VartaAI - Google API Developer Competition 2024 Submission Project
+# VaartaAI - Google API Developer Competition 2024 Submission Project
 
 > Note: We are using Amazon Customer Support Service as example in this project
 
