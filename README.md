@@ -5,15 +5,11 @@
 ## Problem Statement:
 Build a next-generation multi-lingual virtual customer service solution powered by Large Language models (LLM) and Deep learning algorithms. The goal is to enable seamless, natural communication over the phone, offering quicker query resolution without the limitations of traditional chatbots. Implement sentiment analysis to understand customer emotions better and adjust the agent's responses accordingly, improving the overall experience and service quality. By implementing LLM, Gen AI, IVR, and Text-to-Speech capabilities, Amazon can streamline customer support while optimizing costs
 
-#### Video Demo Link: 
-https://youtu.be/1stubbPNa3Y
-#### Presentation Link: 
-https://drive.google.com/file/d/1sC2Qje31LMXvKTbpA0ccCd9Mt3bUD1r2/view?usp=sharing
-
-#### Team Log Mergers
+#### Team Vaarta
 - Aditya Garg
 - Mehul Gupta
 - Parteek Goyal
+- Renison Gohel
 
 ## Features:
 - Provides a seamless and natural conversational flow over the phone with a live conversational agent.
