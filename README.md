@@ -36,7 +36,7 @@ Building a next-generation multi-lingual virtual customer service solution power
 
 ## Implementation Details
 
-<img width="682" alt="Screenshot 2024-06-22 at 22 30 32" src="https://github.com/aditygrg2/gemini-api-dev-competition/assets/98523623/fc235686-05db-458c-80f2-2ea86b633d73">
+<img width="682" alt="Screenshot 2024-06-22 at 22 30 32" src="https://github.com/aditygrg2/ivr-llm/assets/98523623/fc235686-05db-458c-80f2-2ea86b633d73">
 
 Our project architecture is designed to efficiently handle customer queries through a seamless integration of various services. Here's a detailed walkthrough:
 
@@ -63,7 +63,7 @@ Our project architecture is designed to efficiently handle customer queries thro
    - **Keyword Tracking**: For example, tracking words like "sale," "great," or "Indian" helps us analyze interest in the Amazon Great Indian Sale.
    - **Data Storage**: The logging service stores call recordings and transcriptions in a database for future analysis.
 
-<img width="655" alt="Screenshot 2024-06-22 at 22 30 00" src="https://github.com/aditygrg2/gemini-api-dev-competition/assets/98523623/dabdcd25-947f-4089-9f0f-1842a911962d">
+<img width="655" alt="Screenshot 2024-06-22 at 22 30 00" src="https://github.com/aditygrg2/ivr-llm/assets/98523623/dabdcd25-947f-4089-9f0f-1842a911962d">
 
 Talking about low level, we follow a two-step process:
 
